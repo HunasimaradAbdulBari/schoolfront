@@ -1,21 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Login from './components/Login';
-import Register from './components/Register'; // ✅ NEW
+import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 import { motion } from 'framer-motion';
-
-
 import AOS from 'aos';
 import 'aos/dist/aos.css';
-
-// useEffect(() => {
-//   AOS.init({ duration: 2 });
-// }, []);
-
-
 
 function PageWrapper({ children }) {
   return (
@@ -29,31 +22,29 @@ function PageWrapper({ children }) {
   );
 }
 
-
-
 function App() {
+  useEffect(() => {
+    AOS.init({ duration: 1000 });
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
         <div className="App">
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} /> {/* ✅ NEW */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route
-              path="/dashboard"
+            <Route path="/register" element={<Register />} />
+            <Route 
+              path="/dashboard" 
               element={
-                <PageWrapper>
-                  <Dashboard />
-                </PageWrapper>
-              }
+                <ProtectedRoute>
+                  <PageWrapper>
+                    <Dashboard />
+                  </PageWrapper>
+                </ProtectedRoute>
+              } 
             />
-                        {/* <Route
-              path="/"
-              element={<Navigate to="/dashboard" />}
-            /> */}
-
+            <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
         </div>
       </Router>
