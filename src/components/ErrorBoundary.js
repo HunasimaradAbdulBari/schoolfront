@@ -17,10 +17,29 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary">
-          <h2>Something went wrong.</h2>
-          <p>Please refresh the page or contact support.</p>
-          <button onClick={() => window.location.reload()}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          padding: '20px',
+          textAlign: 'center'
+        }}>
+          <h2>Something went wrong!</h2>
+          <p>We're sorry for the inconvenience. Please refresh the page.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '10px 20px',
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              marginTop: '20px'
+            }}
+          >
             Refresh Page
           </button>
         </div>

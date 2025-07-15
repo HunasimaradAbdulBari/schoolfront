@@ -1,14 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
-import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 import { motion } from 'framer-motion';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
 
 function PageWrapper({ children }) {
   return (
@@ -23,10 +20,6 @@ function PageWrapper({ children }) {
 }
 
 function App() {
-  useEffect(() => {
-    AOS.init({ duration: 1000 });
-  }, []);
-
   return (
     <AuthProvider>
       <Router>
@@ -37,14 +30,12 @@ function App() {
             <Route 
               path="/dashboard" 
               element={
-                <ProtectedRoute>
-                  <PageWrapper>
-                    <Dashboard />
-                  </PageWrapper>
-                </ProtectedRoute>
+                <PageWrapper>
+                  <Dashboard />
+                </PageWrapper>
               } 
             />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
       </Router>
