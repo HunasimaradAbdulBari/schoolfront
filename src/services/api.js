@@ -1,10 +1,15 @@
+// src/services/api.js
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
-// Add request interceptor to include token
+// Automatically attach token to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -13,7 +18,5 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
