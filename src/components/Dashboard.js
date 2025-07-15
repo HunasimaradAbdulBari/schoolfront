@@ -33,7 +33,7 @@ const Dashboard = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await api.get('/students');
+      const response = await api.get('/api/students'); // ✅ fixed
       setStudents(response.data);
     } catch (error) {
       setError('Failed to fetch students');
@@ -53,7 +53,7 @@ const Dashboard = () => {
     setError('');
 
     try {
-      const response = await api.post('/students', formData);
+      const response = await api.post('/api/students', formData); // ✅ fixed
       setStudents([...students, response.data]);
       setCurrentReceipt(response.data);
       setShowReceipt(true);
@@ -91,16 +91,11 @@ const Dashboard = () => {
     const value = e.target.value;
     setSearchTerm(value);
     try {
-      const response = await api.get(`/students?search=${value}`);
+      const response = await api.get(`/api/students?search=${value}`); // ✅ fixed
       setStudents(response.data);
     } catch (error) {
       console.error('Search error:', error);
     }
-  };
-
-  const generateReceipt = (student) => {
-    setCurrentReceipt(student);
-    setShowReceipt(true);
   };
 
   const downloadReceipt = (student) => {
@@ -216,14 +211,7 @@ const Dashboard = () => {
             <div className="form-actions">
               <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Submitting...' : 'Submit'}</button>
               <button type="button" onClick={handleClear} className="clear-btn" disabled={loading}>Clear</button>
-              <button
-                type="button"
-                className="download-btn"
-                onClick={() => formData.name && downloadReceipt(formData)}
-                disabled={!formData.name}
-              >
-                Download Receipt
-              </button>
+              <button type="button" className="download-btn" onClick={() => formData.name && downloadReceipt(formData)} disabled={!formData.name}>Download Receipt</button>
             </div>
           </div>
         </form>
