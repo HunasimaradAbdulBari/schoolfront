@@ -4,20 +4,9 @@ import { AuthProvider } from './context/AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import Students from './components/Students';
+import Layout from './components/Layout';
 import './App.css';
-import { motion } from 'framer-motion';
-
-function PageWrapper({ children }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 function App() {
   return (
@@ -27,15 +16,11 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <PageWrapper>
-                  <Dashboard />
-                </PageWrapper>
-              } 
-            />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="students" element={<Students />} />
+            </Route>
           </Routes>
         </div>
       </Router>
