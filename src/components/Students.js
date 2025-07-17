@@ -10,6 +10,8 @@ const Students = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,13 +30,8 @@ const Students = () => {
     }
   };
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleClassFilter = (e) => {
-    setSelectedClass(e.target.value);
-  };
+  const handleSearch = (e) => setSearchTerm(e.target.value);
+  const handleClassFilter = (e) => setSelectedClass(e.target.value);
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -134,10 +131,40 @@ const Students = () => {
 
   const openStudentDetails = (student) => {
     setSelectedStudent(student);
+    setEditForm(student);
+    setIsEditMode(false);
   };
 
   const closeStudentDetails = () => {
     setSelectedStudent(null);
+    setIsEditMode(false);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const response = await api.put(`/api/students/${editForm._id}`, editForm);
+      setStudents(prev => prev.map(s => s._id === response.data._id ? response.data : s));
+      setIsEditMode(false);
+    } catch (err) {
+      alert('Failed to update student');
+    }
+  };
+
+  const handleDeleteStudent = async (id) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      try {
+        await api.delete(`/api/students/${id}`);
+        setStudents(prev => prev.filter(student => student._id !== id));
+        setSelectedStudent(null);
+      } catch (err) {
+        alert('Failed to delete student');
+      }
+    }
   };
 
   if (loading) {
@@ -153,29 +180,16 @@ const Students = () => {
     <div className="students-container">
       <div className="students-header">
         <h1>Student Records</h1>
-        <button onClick={() => navigate('/dashboard')} className="add-student-btn">
-          Add New Student
-        </button>
+        <button onClick={() => navigate('/dashboard')} className="add-student-btn">Add New Student</button>
       </div>
 
       <div className="students-filters">
         <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search students..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="search-input"
-          />
+          <input type="text" placeholder="Search students..." value={searchTerm} onChange={handleSearch} className="search-input" />
           <span className="search-icon">🔍</span>
         </div>
-
         <div className="filter-container">
-          <select
-            value={selectedClass}
-            onChange={handleClassFilter}
-            className="class-filter"
-          >
+          <select value={selectedClass} onChange={handleClassFilter} className="class-filter">
             <option value="">All Classes</option>
             <option value="Play Group">Play Group</option>
             <option value="Nursery">Nursery</option>
@@ -189,22 +203,13 @@ const Students = () => {
 
       <div className="students-grid">
         {filteredStudents.length === 0 ? (
-          <div className="no-students">
-            <p>No students found</p>
-          </div>
+          <div className="no-students"><p>No students found</p></div>
         ) : (
           filteredStudents.map((student) => (
             <div key={student._id} className="student-card">
               <div className="student-photo">
-                {student.studentPhoto ? (
-                  <img src={student.studentPhoto} alt={student.name} />
-                ) : (
-                  <div className="photo-placeholder">
-                    <span>📷</span>
-                  </div>
-                )}
+                {student.studentPhoto ? <img src={student.studentPhoto} alt={student.name} /> : <div className="photo-placeholder"><span>📷</span></div>}
               </div>
-              
               <div className="student-info">
                 <h3>{student.name}</h3>
                 <p className="student-class">{student.class}</p>
@@ -214,20 +219,9 @@ const Students = () => {
                 <p><strong>Balance:</strong> ₹{student.balance}</p>
                 <p><strong>Date:</strong> {new Date(student.date).toLocaleDateString()}</p>
               </div>
-
               <div className="student-actions">
-                <button 
-                  onClick={() => openStudentDetails(student)} 
-                  className="details-btn"
-                >
-                  View Details
-                </button>
-                <button 
-                  onClick={() => downloadReceipt(student)} 
-                  className="receipt-btn"
-                >
-                  Download Receipt
-                </button>
+                <button onClick={() => openStudentDetails(student)} className="details-btn">View Details</button>
+                <button onClick={() => downloadReceipt(student)} className="receipt-btn">Download Receipt</button>
               </div>
             </div>
           ))
@@ -242,73 +236,46 @@ const Students = () => {
               <h2>Student Details</h2>
               <button onClick={closeStudentDetails} className="close-btn">×</button>
             </div>
-            
+
             <div className="modal-body">
-              <div className="student-detail-photo">
-                {selectedStudent.studentPhoto ? (
-                  <img src={selectedStudent.studentPhoto} alt={selectedStudent.name} />
-                ) : (
-                  <div className="photo-placeholder-large">
-                    <span>📷</span>
+              {isEditMode ? (
+                <div className="student-details-form">
+                  {["name", "class", "parentName", "parentPhone", "address", "dateOfBirth", "bloodGroup", "feePaid", "balance", "date", "allergies"].map(field => (
+                    <div className="detail-row" key={field}>
+                      <label>{field.replace(/([A-Z])/g, ' $1')}:</label>
+                      <input type={field.includes("date") ? "date" : "text"} name={field} value={editForm[field] || ''} onChange={handleEditChange} />
+                    </div>
+                  ))}
+                  <div className="modal-footer">
+                    <button onClick={handleEditSubmit} className="download-btn">Save</button>
+                    <button onClick={() => setIsEditMode(false)} className="close-modal-btn">Cancel</button>
                   </div>
-                )}
-              </div>
-              
-              <div className="student-details">
-                <div className="detail-row">
-                  <label>Name:</label>
-                  <span>{selectedStudent.name}</span>
                 </div>
-                <div className="detail-row">
-                  <label>Class:</label>
-                  <span>{selectedStudent.class}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Date of Birth:</label>
-                  <span>{selectedStudent.dateOfBirth ? new Date(selectedStudent.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Blood Group:</label>
-                  <span>{selectedStudent.bloodGroup || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Address:</label>
-                  <span>{selectedStudent.address || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Parent Name:</label>
-                  <span>{selectedStudent.parentName || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Parent Phone:</label>
-                  <span>{selectedStudent.parentPhone || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Fee Paid:</label>
-                  <span>₹{selectedStudent.feePaid}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Balance:</label>
-                  <span>₹{selectedStudent.balance}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Payment Date:</label>
-                  <span>{new Date(selectedStudent.date).toLocaleDateString()}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Allergies/Medical Notes:</label>
-                  <span>{selectedStudent.allergies || 'None'}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="modal-footer">
-              <button onClick={() => downloadReceipt(selectedStudent)} className="download-btn">
-                Download Receipt
-              </button>
-              <button onClick={closeStudentDetails} className="close-modal-btn">
-                Close
-              </button>
+              ) : (
+                <>
+                  <div className="student-detail-photo">
+                    {selectedStudent.studentPhoto ? <img src={selectedStudent.studentPhoto} alt={selectedStudent.name} /> : <div className="photo-placeholder-large"><span>📷</span></div>}
+                  </div>
+                  <div className="student-details">
+                    <div className="detail-row"><label>Name:</label><span>{selectedStudent.name}</span></div>
+                    <div className="detail-row"><label>Class:</label><span>{selectedStudent.class}</span></div>
+                    <div className="detail-row"><label>Date of Birth:</label><span>{selectedStudent.dateOfBirth ? new Date(selectedStudent.dateOfBirth).toLocaleDateString() : 'N/A'}</span></div>
+                    <div className="detail-row"><label>Blood Group:</label><span>{selectedStudent.bloodGroup || 'N/A'}</span></div>
+                    <div className="detail-row"><label>Address:</label><span>{selectedStudent.address || 'N/A'}</span></div>
+                    <div className="detail-row"><label>Parent Name:</label><span>{selectedStudent.parentName || 'N/A'}</span></div>
+                    <div className="detail-row"><label>Parent Phone:</label><span>{selectedStudent.parentPhone || 'N/A'}</span></div>
+                    <div className="detail-row"><label>Fee Paid:</label><span>₹{selectedStudent.feePaid}</span></div>
+                    <div className="detail-row"><label>Balance:</label><span>₹{selectedStudent.balance}</span></div>
+                    <div className="detail-row"><label>Payment Date:</label><span>{new Date(selectedStudent.date).toLocaleDateString()}</span></div>
+                    <div className="detail-row"><label>Allergies/Medical Notes:</label><span>{selectedStudent.allergies || 'None'}</span></div>
+                  </div>
+                  <div className="modal-footer">
+                    <button onClick={() => setIsEditMode(true)} className="details-btn">Edit</button>
+                    <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="close-modal-btn">Delete</button>
+                    <button onClick={() => downloadReceipt(selectedStudent)} className="receipt-btn">Download Receipt</button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
