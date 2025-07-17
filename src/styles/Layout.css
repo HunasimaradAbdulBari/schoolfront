@@ -158,7 +158,7 @@
     position: absolute;
     top: 70px;
     right: 0;
-    background: #764ba2;
+    background:rgba(174, 147, 193, 0.1);
     flex-direction: column;
     width: 100%;
     align-items: center;
