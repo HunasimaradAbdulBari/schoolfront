@@ -304,7 +304,7 @@ const Students = () => {
                 Download Receipt
               </button>
               <br />
-              <button onClick={() => setIsEditMode(true)} className="details-btn">Edit</button>
+              <button onClick={() => handleUpdateStudent(true)} className="details-btn">Edit</button>
               <br />
                     <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="close-modal-btn">Delete</button>
                     <br />
