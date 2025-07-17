@@ -104,7 +104,7 @@
 
 .details-btn:hover,
 .receipt-btn:hover {
-  background-color: #ad8ae3;
+  background-color: #6aafe7;
 }
 
 /* Modal */
@@ -160,7 +160,7 @@
 .close-modal-btn {
   margin-top: 15px;
   padding: 10px;
-  background-color: #764ba2;
+  background-color: #3c90ef;
   color: white;
   border: none;
   border-radius: 6px;
@@ -170,7 +170,7 @@
 
 .download-btn:hover,
 .close-modal-btn:hover {
-  background-color: #5a378f;
+  background-color: rgb(118, 208, 233);
 }
 
 /* Responsive */

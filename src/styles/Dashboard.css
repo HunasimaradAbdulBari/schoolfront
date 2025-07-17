@@ -60,7 +60,7 @@
 .submit-btn,
 .clear-btn,
 .view-btn {
-  background-color: #764ba2;
+  background-color: #3c90ef;
   color: white;
   padding: 10px 18px;
   border: none;
@@ -72,7 +72,7 @@
 .submit-btn:hover,
 .clear-btn:hover,
 .view-btn:hover {
-  background-color: #5a378f;
+  background-color: #3c90ef;
 }
 
 .error-message,

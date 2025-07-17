@@ -72,11 +72,23 @@ const Layout = () => {
             <p>5th Cross, Ganesh Temple Road</p>
             <p>Sadashiv Nagar, Tumkur - 572101</p>
           </div>
+
           <div className="footer-section">
             <h4>Contact</h4>
-            <p>📞 9008887230</p>
-            <p>📧 info@astrapreschool.com</p>
+            <p>
+              <a href="tel:9008887230">
+                <i className="fa fa-phone" style={{ fontSize: '20px', marginRight: '6px' }}></i>
+                9008887230
+              </a>
+            </p>
+            <p>
+              <a href="mailto:info@astrapreschool.com">
+                <i className="fa fa-envelope" style={{ fontSize: '20px', marginRight: '6px' }}></i>
+                info@astrapreschool.com
+              </a>
+            </p>
           </div>
+
           <div className="footer-section">
             <h4>Quick Links</h4>
             <Link to="/register">Dashboard</Link>
@@ -84,8 +96,9 @@ const Layout = () => {
             <Link to="/register">Register</Link>
           </div>
         </div>
+
         <div className="footer-bottom">
-          <p>&copy; 2024 Astra Preschool. All rights reserved.</p>
+          <p>&copy; 2025 Astra Preschool. All rights reserved.</p>
         </div>
       </footer>
     </div>
