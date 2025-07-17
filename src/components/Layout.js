@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Layout.css';
 
@@ -34,15 +34,15 @@ const Layout = () => {
           </div>
 
           <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-            <a href="C:\astra\myapplication-erp\againastra\schoolfront\src\components\Dashboard.js" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/dashboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Dashboard
-            </a>
-            <a href="C:\astra\myapplication-erp\againastra\schoolfront\src\components\Students.js" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+            </Link>
+            <Link to="/students" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Students
-            </a>
-            <a href="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+            </Link>
+            <Link to="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Register
-            </a>
+            </Link>
             <div className="nav-controls">
               <button onClick={toggleDarkMode} className="theme-btn">
                 {darkMode ? '☀️' : '🌙'}
@@ -79,9 +79,9 @@ const Layout = () => {
           </div>
           <div className="footer-section">
             <h4>Quick Links</h4>
-            <a href="/register">Dashboard</a> {/* As per your instruction, dashboard → register */}
-            <a href="/students">Students</a>
-            <a href="/register">Register</a>
+            <Link to="/register">Dashboard</Link>
+            <Link to="/students">Students</Link>
+            <Link to="/register">Register</Link>
           </div>
         </div>
         <div className="footer-bottom">
