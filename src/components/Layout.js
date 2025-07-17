@@ -14,15 +14,11 @@ const Layout = () => {
     return null;
   }
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
-
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.body.classList.toggle('dark', !darkMode);
@@ -36,13 +32,16 @@ const Layout = () => {
             <img src="/myapplogo.jpeg" alt="Astra" className="logo-img" />
             <span className="logo-text">ASTRA PRESCHOOL</span>
           </div>
-          
+
           <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
             <a href="/dashboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Dashboard
             </a>
             <a href="/students" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Students
+            </a>
+            <a href="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+              Register
             </a>
             <div className="nav-controls">
               <button onClick={toggleDarkMode} className="theme-btn">
@@ -80,8 +79,9 @@ const Layout = () => {
           </div>
           <div className="footer-section">
             <h4>Quick Links</h4>
-            <a href="/dashboard">Dashboard</a>
+            <a href="/register">Dashboard</a> {/* As per your instruction, dashboard → register */}
             <a href="/students">Students</a>
+            <a href="/register">Register</a>
           </div>
         </div>
         <div className="footer-bottom">

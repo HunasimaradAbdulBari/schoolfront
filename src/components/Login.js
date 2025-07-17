@@ -22,15 +22,14 @@ const Login = () => {
 
     try {
       const result = await login(username, password);
-
       if (result.success) {
         navigate('/dashboard');
       } else {
         setError(result.message || 'Login failed. Please try again.');
       }
     } catch (err) {
-      setError('Something went wrong. Please try again later.');
       console.error('Login error:', err);
+      setError('Something went wrong. Please try again later.');
     }
   };
 
@@ -38,12 +37,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          {/* ✅ Use relative public path for image */}
-          <img 
-            src="/myapplogo.jpeg" 
-            alt="Astra Preschool" 
-            className="login-logo" 
-          />
+          <img src="/myapplogo.jpeg" alt="Astra Preschool" className="login-logo" />
           <h1>ASTRA PRESCHOOL</h1>
           <p>Login to continue</p>
         </div>
@@ -52,9 +46,8 @@ const Login = () => {
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label>Username</label>
             <input
-              id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -64,9 +57,8 @@ const Login = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
-              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -75,9 +67,7 @@ const Login = () => {
             />
           </div>
 
-          <button type="submit" className="login-button">
-            Login
-          </button>
+          <button type="submit" className="login-button">Login</button>
         </form>
       </div>
     </div>
