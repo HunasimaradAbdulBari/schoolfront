@@ -117,8 +117,7 @@ const Students = () => {
       </body>
       </html>
     `;
-
-    const blob = new Blob([receiptHTML], { type: 'text/html' });
+const blob = new Blob([receiptHTML], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -131,16 +130,47 @@ const Students = () => {
 
   const openStudentDetails = (student) => {
     setSelectedStudent(student);
+    setEditForm(student);
+    setIsEditMode(false);
   };
 
   const closeStudentDetails = () => {
     setSelectedStudent(null);
+    setIsEditMode(false);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdateStudent = async () => {
+    try {
+      const res = await api.put(`/api/students/${editForm._id}`, editForm);
+      setStudents(prev => prev.map(s => s._id === res.data._id ? res.data : s));
+      setSelectedStudent(res.data);
+      setIsEditMode(false);
+    } catch (err) {
+      alert('Failed to update student');
+    }
+  };
+
+  const handleDeleteStudent = async (id) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      try {
+        await api.delete(`/api/students/${id}`);
+        setStudents(prev => prev.filter(s => s._id !== id));
+        closeStudentDetails();
+      } catch (err) {
+        alert('Failed to delete student');
+      }
+    }
   };
 
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="spinner"></div>
+        <div className="spinner" />
         <p>Loading students...</p>
       </div>
     );
@@ -166,7 +196,6 @@ const Students = () => {
           />
           <span className="search-icon">🔍</span>
         </div>
-
         <div className="filter-container">
           <select
             value={selectedClass}
@@ -186,22 +215,17 @@ const Students = () => {
 
       <div className="students-grid">
         {filteredStudents.length === 0 ? (
-          <div className="no-students">
-            <p>No students found</p>
-          </div>
+          <div className="no-students"><p>No students found</p></div>
         ) : (
-          filteredStudents.map((student) => (
+          filteredStudents.map(student => (
             <div key={student._id} className="student-card">
               <div className="student-photo">
                 {student.studentPhoto ? (
                   <img src={student.studentPhoto} alt={student.name} />
                 ) : (
-                  <div className="photo-placeholder">
-                    <span>📷</span>
-                  </div>
+                  <div className="photo-placeholder"><span>📷</span></div>
                 )}
               </div>
-              
               <div className="student-info">
                 <h3>{student.name}</h3>
                 <p className="student-class">{student.class}</p>
@@ -211,18 +235,11 @@ const Students = () => {
                 <p><strong>Balance:</strong> ₹{student.balance}</p>
                 <p><strong>Date:</strong> {new Date(student.date).toLocaleDateString()}</p>
               </div>
-
               <div className="student-actions">
-                <button 
-                  onClick={() => openStudentDetails(student)} 
-                  className="details-btn"
-                >
+                <button onClick={() => openStudentDetails(student)} className="details-btn">
                   View Details
                 </button>
-                <button 
-                  onClick={() => downloadReceipt(student)} 
-                  className="receipt-btn"
-                >
+                <button onClick={() => downloadReceipt(student)} className="receipt-btn">
                   Download Receipt
                 </button>
               </div>
@@ -231,86 +248,73 @@ const Students = () => {
         )}
       </div>
 
-      {/* Student Details Modal */}
       {selectedStudent && (
         <div className="modal-overlay" onClick={closeStudentDetails}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Student Details</h2>
               <button onClick={closeStudentDetails} className="close-btn">×</button>
             </div>
-            
             <div className="modal-body">
-              <div className="student-detail-photo">
-                {selectedStudent.studentPhoto ? (
-                  <img src={selectedStudent.studentPhoto} alt={selectedStudent.name} />
-                ) : (
-                  <div className="photo-placeholder-large">
-                    <span>📷</span>
+              {isEditMode ? (
+                <div className="student-details-form">
+                  {["name","class","parentName","parentPhone","address","dateOfBirth","bloodGroup","feePaid","balance","date","allergies"].map(f => (
+                    <div className="detail-row" key={f}>
+                      <label>{f.charAt(0).toUpperCase() + f.slice(1)}:</label>
+                      <input
+                        name={f}
+                        type={f.includes("date") ? "date" : "text"}
+                        value={editForm[f] || ''}
+                        onChange={handleEditChange}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="student-detail-photo">
+                    {selectedStudent.studentPhoto ? (
+                      <img src={selectedStudent.studentPhoto} alt={selectedStudent.name} />
+                    ) : (
+                      <div className="photo-placeholder-large"><span>📷</span></div>
+                    )}
                   </div>
-                )}
-              </div>
-              
-              <div className="student-details">
-                <div className="detail-row">
-                  <label>Name:</label>
-                  <span>{selectedStudent.name}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Class:</label>
-                  <span>{selectedStudent.class}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Date of Birth:</label>
-                  <span>{selectedStudent.dateOfBirth ? new Date(selectedStudent.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Blood Group:</label>
-                  <span>{selectedStudent.bloodGroup || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Address:</label>
-                  <span>{selectedStudent.address || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Parent Name:</label>
-                  <span>{selectedStudent.parentName || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Parent Phone:</label>
-                  <span>{selectedStudent.parentPhone || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Fee Paid:</label>
-                  <span>₹{selectedStudent.feePaid}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Balance:</label>
-                  <span>₹{selectedStudent.balance}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Payment Date:</label>
-                  <span>{new Date(selectedStudent.date).toLocaleDateString()}</span>
-                </div>
-                <div className="detail-row">
-                  <label>Allergies/Medical Notes:</label>
-                  <span>{selectedStudent.allergies || 'None'}</span>
-                </div>
-              </div>
+                  <div className="student-details">
+                    {["Name","Class","Date of Birth","Blood Group","Address","Parent Name","Parent Phone","Fee Paid","Balance","Payment Date","Allergies/Medical Notes"].map((label, idx) => {
+                      const keyMap = {
+                        0: "name", 1: "class", 2: "dateOfBirth",
+                        3: "bloodGroup", 4: "address", 5: "parentName",
+                        6: "parentPhone", 7: "feePaid", 8: "balance",
+                        9: "date", 10: "allergies"
+                      };
+                      const val = selectedStudent[keyMap[idx]];
+                      const display = keyMap[idx]==="date" || keyMap[idx]==="dateOfBirth"
+                        ? val ? new Date(val).toLocaleDateString() : 'N/A'
+                        : val || 'N/A';
+                      return (
+                        <div className="detail-row" key={label}>
+                          <label>{label}:</label><span>{display}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
-            
             <div className="modal-footer">
-              <button onClick={() => downloadReceipt(selectedStudent)} className="download-btn">
-                Download Receipt
-              </button>
-              <br />
-              <button onClick={() => handleUpdateStudent(true)} className="details-btn">Edit</button>
-              <br />
-                    <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="close-modal-btn">Delete</button>
-                    <br />
-              <button onClick={closeStudentDetails} className="close-modal-btn">
-                Close
-              </button>
+              {isEditMode ? (
+                <>
+                  <button onClick={handleUpdateStudent} className="details-btn">Save</button>
+                  <button onClick={() => setIsEditMode(false)} className="close-modal-btn">Cancel</button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => downloadReceipt(selectedStudent)} className="receipt-btn">Download Receipt</button>
+                  <button onClick={() => setIsEditMode(true)} className="details-btn">Edit</button>
+                  <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="close-modal-btn">Delete</button>
+                  <button onClick={closeStudentDetails} className="close-modal-btn">Close</button>
+                </>
+              )}
             </div>
           </div>
         </div>
