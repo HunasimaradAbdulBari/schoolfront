@@ -37,7 +37,7 @@ const Layout = () => {
             <a href="C:\astra\myapplication-erp\againastra\schoolfront\src\components\Dashboard.js" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Dashboard
             </a>
-            <a href="/students" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+            <a href="C:\astra\myapplication-erp\againastra\schoolfront\src\components\Students.js" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Students
             </a>
             <a href="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>
