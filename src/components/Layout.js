@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { HashRouter as Router } from 'react-router-dom';
+
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Layout.css';
