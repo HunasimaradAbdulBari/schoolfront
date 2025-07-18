@@ -40,9 +40,9 @@ const Layout = () => {
             <Link to="/students" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Students
             </Link>
-            <Link to="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+            {/* <Link to="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               Register
-            </Link>
+            </Link> */}
             <div className="nav-controls">
               <button onClick={toggleDarkMode} className="theme-btn">
                 {darkMode ? '☀️' : '🌙'}
