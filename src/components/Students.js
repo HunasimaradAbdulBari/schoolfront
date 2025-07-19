@@ -196,6 +196,45 @@ const Students = () => {
       </body>
       </html>
     `;
+    const handleStudentPrint = (student) => {
+  const printWindow = window.open('', '', 'height=600,width=800');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print - ${student.name}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .header { text-align: center; margin-bottom: 20px; }
+          .detail-row { margin-bottom: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2>ASTRA PRESCHOOL</h2>
+          <p>Student Detail Printout</p>
+          <hr />
+        </div>
+        <div class="details">
+          <div class="detail-row"><strong>Name:</strong> ${student.name}</div>
+          <div class="detail-row"><strong>Class:</strong> ${student.class}</div>
+          <div class="detail-row"><strong>Parent:</strong> ${student.parentName || 'N/A'}</div>
+          <div class="detail-row"><strong>Phone:</strong> ${student.parentPhone || 'N/A'}</div>
+          <div class="detail-row"><strong>Date of Birth:</strong> ${student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : 'N/A'}</div>
+          <div class="detail-row"><strong>Blood Group:</strong> ${student.bloodGroup || 'N/A'}</div>
+          <div class="detail-row"><strong>Address:</strong> ${student.address || 'N/A'}</div>
+          <div class="detail-row"><strong>Fee Paid:</strong> ₹${student.feePaid}</div>
+          <div class="detail-row"><strong>Balance:</strong> ₹${student.balance}</div>
+          <div class="detail-row"><strong>Payment Date:</strong> ${student.date ? new Date(student.date).toLocaleDateString() : 'N/A'}</div>
+          <div class="detail-row"><strong>Allergies:</strong> ${student.allergies || 'N/A'}</div>
+        </div>
+        <p style="margin-top: 30px; font-style: italic; text-align: center;">Printed on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+};
+
     const blob = new Blob([receiptHTML], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -399,12 +438,14 @@ const Students = () => {
                   <button onClick={() => setIsEditMode(false)} className="close-modal-btn">Cancel</button>
                 </>
               ) : (
-                <>
-                  <button onClick={() => downloadReceipt(selectedStudent)} className="receipt-btn">Download Receipt</button>
-                  <button onClick={() => setIsEditMode(true)} className="details-btn">Edit</button>
-                  <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="delete-btn">Delete</button>
-                  <button onClick={closeStudentDetails} className="close-modal-btn">Close</button>
-                </>
+               <>
+  <button onClick={() => downloadReceipt(selectedStudent)} className="receipt-btn">Download Receipt</button>
+  <button onClick={() => handleStudentPrint(selectedStudent)} className="details-btn">🖨️ Print</button>
+  <button onClick={() => setIsEditMode(true)} className="details-btn">Edit</button>
+  <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="delete-btn">Delete</button>
+  <button onClick={closeStudentDetails} className="close-modal-btn">Close</button>
+</>
+
               )}
             </div>
           </div>
