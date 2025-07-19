@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/Students.css';
 
 const Students = () => {
+  // State declarations
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -12,12 +13,15 @@ const Students = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [viewMode, setViewMode] = useState('grid');
   const navigate = useNavigate();
 
+  // Effects
   useEffect(() => {
     fetchStudents();
   }, []);
 
+  // API functions
   const fetchStudents = async () => {
     setLoading(true);
     try {
@@ -30,9 +34,84 @@ const Students = () => {
     }
   };
 
+  const handleUpdateStudent = async () => {
+    setLoading(true);
+    try {
+      const res = await api.put(`/api/students/${editForm._id}`, editForm);
+      setStudents(prev => prev.map(s => s._id === res.data._id ? res.data : s));
+      setSelectedStudent(res.data);
+      setIsEditMode(false);
+    } catch (err) {
+      alert('Failed to update student');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteStudent = async (id) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      setLoading(true);
+      try {
+        await api.delete(`/api/students/${id}`);
+        setStudents(prev => prev.filter(s => s._id !== id));
+        closeStudentDetails();
+      } catch (err) {
+        alert('Failed to delete student');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Event handlers
   const handleSearch = (e) => setSearchTerm(e.target.value);
   const handleClassFilter = (e) => setSelectedClass(e.target.value);
 
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Print functionality
+  const handlePrint = () => {
+    const content = document.getElementById('print-area');
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Students List - Astra Preschool</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .print-header { text-align: center; margin-bottom: 30px; }
+          .student-item { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+          .student-name { font-weight: bold; font-size: 16px; }
+          .student-details { margin-top: 5px; }
+          @media print { body { margin: 0; } }
+        </style>
+      </head>
+      <body>
+        ${content.innerHTML}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  // Modal functions
+  const openStudentDetails = (student) => {
+    setSelectedStudent(student);
+    setEditForm(student);
+    setIsEditMode(false);
+  };
+
+  const closeStudentDetails = () => {
+    setSelectedStudent(null);
+    setIsEditMode(false);
+  };
+
+  // Utility functions
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = selectedClass === '' || student.class === selectedClass;
@@ -117,7 +196,7 @@ const Students = () => {
       </body>
       </html>
     `;
-const blob = new Blob([receiptHTML], { type: 'text/html' });
+    const blob = new Blob([receiptHTML], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -128,45 +207,7 @@ const blob = new Blob([receiptHTML], { type: 'text/html' });
     window.URL.revokeObjectURL(url);
   };
 
-  const openStudentDetails = (student) => {
-    setSelectedStudent(student);
-    setEditForm(student);
-    setIsEditMode(false);
-  };
-
-  const closeStudentDetails = () => {
-    setSelectedStudent(null);
-    setIsEditMode(false);
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleUpdateStudent = async () => {
-    try {
-      const res = await api.put(`/api/students/${editForm._id}`, editForm);
-      setStudents(prev => prev.map(s => s._id === res.data._id ? res.data : s));
-      setSelectedStudent(res.data);
-      setIsEditMode(false);
-    } catch (err) {
-      alert('Failed to update student');
-    }
-  };
-
-  const handleDeleteStudent = async (id) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      try {
-        await api.delete(`/api/students/${id}`);
-        setStudents(prev => prev.filter(s => s._id !== id));
-        closeStudentDetails();
-      } catch (err) {
-        alert('Failed to delete student');
-      }
-    }
-  };
-
+  // Loading state
   if (loading) {
     return (
       <div className="loading-container">
@@ -176,15 +217,39 @@ const blob = new Blob([receiptHTML], { type: 'text/html' });
     );
   }
 
+  // Main render
   return (
     <div className="students-container">
+      {/* Header Section */}
       <div className="students-header">
         <h1>Student Records</h1>
-        <button onClick={() => navigate('/dashboard')} className="add-student-btn">
-          Add New Student
+        <div className="header-actions">
+          <button onClick={handlePrint} className="print-btn">
+            🖨️ Print
+          </button>
+          <button onClick={() => navigate('/dashboard')} className="add-student-btn">
+            Add New Student
+          </button>
+        </div>
+      </div>
+
+      {/* View Toggle */}
+      <div className="view-toggle">
+        <button
+          className={viewMode === 'grid' ? 'active-toggle' : ''}
+          onClick={() => setViewMode('grid')}
+        >
+          Grid View
+        </button>
+        <button
+          className={viewMode === 'list' ? 'active-toggle' : ''}
+          onClick={() => setViewMode('list')}
+        >
+          List View
         </button>
       </div>
 
+      {/* Filters Section */}
       <div className="students-filters">
         <div className="search-container">
           <input
@@ -211,9 +276,34 @@ const blob = new Blob([receiptHTML], { type: 'text/html' });
         </div>
       </div>
 
+      {/* Error Message */}
       {error && <div className="error-message">{error}</div>}
 
-      <div className="students-grid">
+      {/* Print Area - Hidden content for printing */}
+      <div id="print-area" style={{ display: 'none' }}>
+        <div className="print-header">
+          <h1>ASTRA PRESCHOOL - STUDENT RECORDS</h1>
+          <p>5th Cross, Ganesh Temple Road, Sadashiv Nagar, Tumkur - 572101</p>
+          <p>Phone: 9008887230</p>
+          <p>Generated on: {new Date().toLocaleDateString('en-IN')} at {new Date().toLocaleTimeString('en-IN')}</p>
+          <hr />
+        </div>
+        {filteredStudents.map(student => (
+          <div key={student._id} className="student-item">
+            <div className="student-name">{student.name} - {student.class}</div>
+            <div className="student-details">
+              <p><strong>Parent:</strong> {student.parentName || 'N/A'} | <strong>Phone:</strong> {student.parentPhone || 'N/A'}</p>
+              <p><strong>Fee Paid:</strong> ₹{student.feePaid} | <strong>Balance:</strong> ₹{student.balance}</p>
+              <p><strong>Date:</strong> {new Date(student.date).toLocaleDateString()}</p>
+              {student.address && <p><strong>Address:</strong> {student.address}</p>}
+              {student.bloodGroup && <p><strong>Blood Group:</strong> {student.bloodGroup}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Students Grid */}
+      <div className={`students-grid ${viewMode === 'list' ? 'list-view' : 'grid-view'}`}>
         {filteredStudents.length === 0 ? (
           <div className="no-students"><p>No students found</p></div>
         ) : (
@@ -248,6 +338,7 @@ const blob = new Blob([receiptHTML], { type: 'text/html' });
         )}
       </div>
 
+      {/* Modal for Student Details */}
       {selectedStudent && (
         <div className="modal-overlay" onClick={closeStudentDetails}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -311,7 +402,7 @@ const blob = new Blob([receiptHTML], { type: 'text/html' });
                 <>
                   <button onClick={() => downloadReceipt(selectedStudent)} className="receipt-btn">Download Receipt</button>
                   <button onClick={() => setIsEditMode(true)} className="details-btn">Edit</button>
-                  <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="btn btnbtn-danger">Delete</button>
+                  <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="delete-btn">Delete</button>
                   <button onClick={closeStudentDetails} className="close-modal-btn">Close</button>
                 </>
               )}
@@ -322,5 +413,4 @@ const blob = new Blob([receiptHTML], { type: 'text/html' });
     </div>
   );
 };
-
 export default Students;

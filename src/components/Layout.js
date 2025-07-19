@@ -95,7 +95,7 @@ const Layout = () => {
             <h4>Quick Links</h4>
             <Link to="/register">Dashboard</Link>
             <Link to="/students">Students</Link>
-            <Link to="/register">Register</Link>
+          
           </div>
         </div>
 

@@ -39,6 +39,14 @@ const Dashboard = () => {
     }
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    setFormData(prev => ({
+      ...prev,
+      studentPhoto: file
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -130,7 +138,7 @@ const Dashboard = () => {
                 id="studentPhoto"
                 name="studentPhoto"
                 accept="image/*"
-                onChange={handleInputChange}
+                onChange={handlePhotoChange}
                 className="file-input"
               />
               <label htmlFor="studentPhoto" className="file-label">
@@ -314,7 +322,9 @@ const Dashboard = () => {
             <button type="button" onClick={handleClear} className="clear-btn" disabled={loading}>
               Clear Form
             </button>
-            
+            <button type="button" onClick={() => navigate('/students')} className="view-students-btn" disabled={loading}>
+              View Students
+            </button>
           </div>
         </form>
       </div>
