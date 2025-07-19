@@ -7,6 +7,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // ✅ Loading state added
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true); // ✅ Start loading
 
     try {
       const result = await login(username, password);
@@ -30,6 +32,8 @@ const Login = () => {
     } catch (err) {
       console.error('Login error:', err);
       setError('Something went wrong. Please try again later.');
+    } finally {
+      setLoading(false); // ✅ Stop loading
     }
   };
 
@@ -67,7 +71,9 @@ const Login = () => {
             />
           </div>
 
-          <button type="submit" className="login-button">Login</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
 
           <p className="register-link">
             Don't have an account? <Link to="/register">Register</Link>

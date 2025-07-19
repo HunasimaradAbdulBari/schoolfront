@@ -314,13 +314,7 @@ const Dashboard = () => {
             <button type="button" onClick={handleClear} className="clear-btn" disabled={loading}>
               Clear Form
             </button>
-            <button 
-              type="button" 
-              onClick={() => navigate('/students')} 
-              className="view-btn"
-            >
-              View Students
-            </button>
+            
           </div>
         </form>
       </div>

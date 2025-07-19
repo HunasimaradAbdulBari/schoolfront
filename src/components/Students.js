@@ -311,7 +311,7 @@ const blob = new Blob([receiptHTML], { type: 'text/html' });
                 <>
                   <button onClick={() => downloadReceipt(selectedStudent)} className="receipt-btn">Download Receipt</button>
                   <button onClick={() => setIsEditMode(true)} className="details-btn">Edit</button>
-                  <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="close-modal-btn">Delete</button>
+                  <button onClick={() => handleDeleteStudent(selectedStudent._id)} className="btn btnbtn-danger">Delete</button>
                   <button onClick={closeStudentDetails} className="close-modal-btn">Close</button>
                 </>
               )}

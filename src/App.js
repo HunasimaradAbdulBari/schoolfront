@@ -6,9 +6,12 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Students from './components/Students';
 import Layout from './components/Layout';
+import useSessionTimeout from './utils/sessionTimeout'; // ✅ Add this line
 import './App.css';
 
 function App() {
+  useSessionTimeout(); // ✅ Activate the timeout logic
+
   return (
     <AuthProvider>
       <Router>
