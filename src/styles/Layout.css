@@ -9,7 +9,7 @@
 
 /* Navbar */
 .navbar {
-  background: linear-gradient(135deg, #66c5ea 0%, #669ce7 100%);
+  background: linear-gradient(135deg, #109fd8 0%, #056dfe 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: sticky;
   top: 0;
@@ -161,7 +161,7 @@
     top: 70px;
     right: 0;
     color: #ccc;
-    background:rgb(158, 204, 240);
+    background:rgb(97, 180, 243);
     flex-direction: column;
     width: 100%;
     align-items: center;
