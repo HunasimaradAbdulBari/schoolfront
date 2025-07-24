@@ -42,8 +42,12 @@ class ErrorBoundary extends React.Component {
     // Clear the error state
     this.setState({ hasError: false, error: null, errorInfo: null });
     
-    // Navigate to home/login
-    window.location.href = '/login';
+    // Navigate to home/login with hash routing support
+    if (window.location.hash) {
+      window.location.hash = '#/login';
+    } else {
+      window.location.href = '/#/login';
+    }
   };
 
   render() {
