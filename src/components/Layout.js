@@ -93,7 +93,7 @@ const Layout = () => {
 
           <div className="footer-section">
             <h4>Quick Links</h4>
-            <Link to="/register">Dashboard</Link>
+            <Link to="/dashboard">Dashboard</Link>
             <Link to="/students">Students</Link>
           
           </div>

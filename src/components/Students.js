@@ -264,9 +264,12 @@ const Students = () => {
       <div className="students-header">
         <h1>Student Records</h1>
         <div className="header-actions">
-          <button onClick={handlePrint} className="print-btn">
-            🖨️ Print
-          </button>
+          {/* Only show print button if students exist */}
+          {students.length > 0 && (
+            <button onClick={handlePrint} className="print-btn">
+              🖨️ Print
+            </button>
+          )}
           <button onClick={() => navigate('/dashboard')} className="add-student-btn">
             Add New Student
           </button>
@@ -355,6 +358,18 @@ const Students = () => {
         ) : (
           filteredStudents.map(student => (
             <div key={student._id} className="student-card">
+              {/* Hover Delete Button */}
+              <button 
+                className="hover-delete-btn" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteStudent(student._id);
+                }}
+                title="Delete Student"
+              >
+                🗑️
+              </button>
+              
               <div className="student-photo">
                 {student.studentPhoto ? (
                   <img src={student.studentPhoto} alt={student.name} />
