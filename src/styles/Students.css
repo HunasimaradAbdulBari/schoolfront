@@ -281,9 +281,9 @@
 /* Hover Delete Button */
 .hover-delete-btn {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(220, 53, 69, 0.9);
+  top: 21px;
+  right: 18px;
+  /* background: rgba(220, 53, 69, 0.9); */
   border: none;
   border-radius: 50%;
   width: 35px;
