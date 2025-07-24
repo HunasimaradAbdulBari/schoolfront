@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Students.css';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 const Students = () => {
   // State declarations
   const [students, setStudents] = useState([]);
@@ -367,7 +368,7 @@ const Students = () => {
                 }}
                 title="Delete Student"
               >
-                <span style={{fontSize: '24px', fontWeight: 'bold'}}>×</span>
+                <FontAwesomeIcon icon={faTrash} />
               </button>
               
               <div className="student-photo">
