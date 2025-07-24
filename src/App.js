@@ -10,7 +10,7 @@ import useSessionTimeout from './utils/sessionTimeout'; // ✅ Add this line
 import './App.css';
 
 function App() {
-  useSessionTimeout(); // ✅ Activate the timeout logic
+  // useSessionTimeout(); // ✅ Activate the timeout logic
 
   return (
     <AuthProvider>
