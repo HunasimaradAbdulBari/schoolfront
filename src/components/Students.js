@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Students.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
 const Students = () => {
-  // State declarations
+  
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -368,7 +366,15 @@ const Students = () => {
                 }}
                 title="Delete Student"
               >
-                <FontAwesomeIcon icon={faTrash} />
+                 <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height="24"
+    width="24"
+    viewBox="0 0 24 24"
+    fill="red"
+  >
+    <path d="M3 6h18v2H3zm2 3h14l-1.5 12.5h-11zM8 4h8v2H8z" />
+  </svg>
               </button>
               
               <div className="student-photo">
