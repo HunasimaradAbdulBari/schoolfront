@@ -6,29 +6,39 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Students from './components/Students';
 import Layout from './components/Layout';
-// import useSessionTimeout from './utils/sessionTimeout'; // ✅ Add this line
+import ErrorBoundary from './components/ErrorBoundary';
+import useSessionTimeout from './utils/sessionTimeout';
 import './App.css';
 
-function App() {
-  // useSessionTimeout(); // ✅ Activate the timeout logic
+// Component to handle session timeout inside AuthProvider
+function AppContent() {
+  // Activate session timeout
+  useSessionTimeout();
 
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Navigate to="/students" replace />} />
+    <div className="App">
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Navigate to="/students" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="students" element={<Students />} />
+        </Route>
+      </Routes>
+    </div>
+  );
+}
 
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="students" element={<Students />} />
-            </Route>
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+function App() {
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
