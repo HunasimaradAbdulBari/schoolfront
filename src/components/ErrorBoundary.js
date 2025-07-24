@@ -11,42 +11,50 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log the error details
     console.error('Error caught by boundary:', error);
     console.error('Error info:', errorInfo);
     
-    // Store error details in state
     this.setState({
       error: error,
       errorInfo: errorInfo
     });
-
-    // You can also log the error to an error reporting service here
-    // For example: logErrorToService(error, errorInfo);
   }
 
   handleReload = () => {
-    // Clear the error state
+    console.log('Reload button clicked');
     this.setState({ hasError: false, error: null, errorInfo: null });
-    
-    // Reload the page
     window.location.reload();
   };
 
   handleGoHome = () => {
+    console.log('Go to Login button clicked');
+    console.log('Current URL:', window.location.href);
+    console.log('Origin:', window.location.origin);
+    
     // Clear the error state
     this.setState({ hasError: false, error: null, errorInfo: null });
     
-    // Navigate to home/login with hash routing support
-    if (window.location.hash) {
-      window.location.hash = '#/login';
-    } else {
-      window.location.href = '/#/login';
+    // Try multiple navigation methods
+    const loginUrl = window.location.origin + '/#/login';
+    console.log('Attempting to navigate to:', loginUrl);
+    
+    try {
+      // Method 1: Direct href change
+      window.location.href = loginUrl;
+    } catch (e) {
+      console.error('Method 1 failed:', e);
+      try {
+        // Method 2: Hash change
+        window.location.hash = '#/login';
+      } catch (e2) {
+        console.error('Method 2 failed:', e2);
+        // Method 3: Replace entire location
+        window.location.replace(loginUrl);
+      }
     }
   };
 
@@ -86,6 +94,21 @@ class ErrorBoundary extends React.Component {
             }}>
               We're sorry for the inconvenience. The application encountered an unexpected error.
             </p>
+
+            {/* Debug info */}
+            <div style={{
+              marginBottom: '20px',
+              padding: '10px',
+              backgroundColor: '#e9ecef',
+              borderRadius: '4px',
+              fontSize: '12px',
+              textAlign: 'left'
+            }}>
+              <strong>Debug Info:</strong><br/>
+              Current URL: {window.location.href}<br/>
+              Hash: {window.location.hash}<br/>
+              Origin: {window.location.origin}
+            </div>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details style={{
@@ -128,8 +151,6 @@ class ErrorBoundary extends React.Component {
                   fontSize: '14px',
                   fontWeight: '500'
                 }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
               >
                 🔄 Reload Page
               </button>
@@ -146,10 +167,47 @@ class ErrorBoundary extends React.Component {
                   fontSize: '14px',
                   fontWeight: '500'
                 }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#1e7e34'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#28a745'}
               >
                 🏠 Go to Login
+              </button>
+
+              {/* Additional test buttons */}
+              <button 
+                onClick={() => {
+                  console.log('Testing hash navigation...');
+                  window.location.hash = '#/login';
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#ffc107',
+                  color: 'black',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                Test Hash Navigation
+              </button>
+
+              <button 
+                onClick={() => {
+                  console.log('Testing window.location.replace...');
+                  window.location.replace('/#/login');
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#6f42c1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                Test Replace
               </button>
             </div>
 
@@ -158,7 +216,7 @@ class ErrorBoundary extends React.Component {
               fontSize: '12px',
               color: '#999'
             }}>
-              If this problem persists, please contact support.
+              If this problem persists, please contact support. Check browser console for debug logs.
             </p>
           </div>
         </div>

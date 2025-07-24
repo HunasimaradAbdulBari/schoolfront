@@ -69,12 +69,12 @@ const useSessionTimeout = () => {
       // Logout user
       logout();
       
-      // Navigate to login with hash routing
-      navigate('/login', { replace: true });
+      // Force navigation to login with hash routing
+      window.location.href = window.location.origin + '/#/login';
     } catch (error) {
       console.error('Error during session timeout logout:', error);
       // Force navigation even if logout fails
-      window.location.hash = '#/login';
+      window.location.href = window.location.origin + '/#/login';
     }
   };
 
