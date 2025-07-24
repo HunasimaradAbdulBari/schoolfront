@@ -6,11 +6,11 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Students from './components/Students';
 import Layout from './components/Layout';
-import useSessionTimeout from './utils/sessionTimeout'; // ✅ Add this line
+// import useSessionTimeout from './utils/sessionTimeout'; // ✅ Commented out temporarily
 import './App.css';
 
 function App() {
-  // useSessionTimeout(); // ✅ Activate the timeout logic
+  // useSessionTimeout(); // ✅ Commented out temporarily to debug
 
   return (
     <AuthProvider>
@@ -21,7 +21,6 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<Navigate to="/students" replace />} />
-
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="students" element={<Students />} />
             </Route>
