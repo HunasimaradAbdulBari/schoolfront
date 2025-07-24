@@ -367,7 +367,7 @@ const Students = () => {
                 }}
                 title="Delete Student"
               >
-                🗑️
+                <i class="material-icons" style="font-size:36px"></i>
               </button>
               
               <div className="student-photo">
