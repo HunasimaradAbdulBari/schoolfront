@@ -360,10 +360,24 @@
   min-height: 460px;
   max-height: 460px;
 }
-.grid-view .student-card .default-avatar-svg{
+
+/* Fixed Grid View Avatar - Small Circular Icon */
+.grid-view .student-card .student-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
   border-radius: 50%;
-  height: 50px;
-  width: 50px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e9ecef 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid var(--border-color);
+}
+
+.grid-view .student-card .default-avatar-svg {
+  width: 40px;
+  height: 40px;
+  color: #667eea;
 }
 
 /* Hover Delete Button - Fixed positioning to avoid overlap */
