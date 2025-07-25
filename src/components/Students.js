@@ -15,6 +15,13 @@ const Students = () => {
   const [viewMode, setViewMode] = useState('grid');
   const navigate = useNavigate();
 
+  // Default Avatar SVG Component
+  const DefaultAvatar = () => (
+    <svg className="default-avatar-svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
+  );
+
   // Effects
   useEffect(() => {
     fetchStudents();
@@ -381,12 +388,8 @@ const Students = () => {
                 </svg>
               </button>
               
-              <div className="student-photo">
-                {student.studentPhoto ? (
-                  <img src={student.studentPhoto} alt={student.name} />
-                ) : (
-                  <div className="photo-placeholder"><span>📷</span></div>
-                )}
+              <div className="student-avatar">
+                <DefaultAvatar />
               </div>
               <div className="student-info">
                 <h3>{student.name}</h3>
@@ -439,12 +442,8 @@ const Students = () => {
                 </div>
               ) : (
                 <>
-                  <div className="student-detail-photo">
-                    {selectedStudent.studentPhoto ? (
-                      <img src={selectedStudent.studentPhoto} alt={selectedStudent.name} />
-                    ) : (
-                      <div className="photo-placeholder-large"><span>📷</span></div>
-                    )}
+                  <div className="student-detail-avatar">
+                    <DefaultAvatar />
                   </div>
                   <div className="student-details">
                     {["Name","Class","Date of Birth","Blood Group","Address","Parent Name","Parent Phone","Fee Paid","Balance","Payment Date","Allergies/Medical Notes"].map((label, idx) => {

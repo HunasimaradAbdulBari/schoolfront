@@ -25,6 +25,13 @@
   height: 20px;
 }
 
+/* Default Avatar SVG */
+.default-avatar-svg {
+  width: 80px;
+  height: 80px;
+  color: #667eea;
+}
+
 /* Header Section */
 .students-header {
   display: flex;
@@ -282,17 +289,15 @@
   max-height: none;
 }
 
-.students-grid.list-view .student-photo {
+.students-grid.list-view .student-avatar {
   width: 120px;
   height: 120px;
   flex-shrink: 0;
 }
 
-.students-grid.list-view .student-photo img,
-.students-grid.list-view .photo-placeholder {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
+.students-grid.list-view .student-avatar .default-avatar-svg {
+  width: 60px;
+  height: 60px;
 }
 
 .students-grid.list-view .student-info {
@@ -356,11 +361,11 @@
   max-height: 460px;
 }
 
-/* Hover Delete Button */
+/* Hover Delete Button - Fixed positioning to avoid overlap */
 .hover-delete-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
   background: rgba(220, 53, 69, 0.9);
   border: none;
   border-radius: 50%;
@@ -375,6 +380,7 @@
   opacity: 0;
   transform: scale(0.8);
   backdrop-filter: blur(8px);
+  z-index: 10;
 }
 
 .student-card:hover .hover-delete-btn {
@@ -388,44 +394,42 @@
   box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
 }
 
-/* Student Photo */
-.student-photo {
+/* Student Avatar - Replaced photo styling */
+.student-avatar {
   width: 100%;
-  height: 200px;
+  height: 120px;
   border-radius: 12px;
   overflow: hidden;
-  background: #f8f9fa;
-  position: relative;
-}
-
-.student-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.student-card:hover .student-photo img {
-  transform: scale(1.08);
-}
-
-.photo-placeholder,
-.photo-placeholder-large {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #f8f9ff 0%, #e9ecef 100%);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 40px;
-  color: #adb5bd;
-  border-radius: 12px;
-  border: 2px dashed #dee2e6;
+  border: 2px solid var(--border-color);
+  margin-top: 40px;
 }
 
-.photo-placeholder-large {
-  height: 200px;
-  font-size: 60px;
+.student-avatar .default-avatar-svg {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.student-card:hover .student-avatar .default-avatar-svg {
+  transform: scale(1.1);
+}
+
+/* Student Detail Avatar for Modal */
+.student-detail-avatar {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.student-detail-avatar .default-avatar-svg {
+  width: 120px;
+  height: 120px;
+  padding: 30px;
+  border-radius: 16px;
+  border: 4px solid var(--border-color);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f8f9ff 0%, #e9ecef 100%);
 }
 
 /* Student Info */
@@ -614,20 +618,6 @@
   overflow-y: auto;
 }
 
-.student-detail-photo {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.student-detail-photo img,
-.student-detail-photo .photo-placeholder-large {
-  width: 180px;
-  height: 180px;
-  border-radius: 16px;
-  border: 4px solid var(--border-color);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
 .student-details {
   display: grid;
   gap: 18px;
@@ -789,15 +779,14 @@
     margin-top: 16px;
   }
 
-  .students-grid.list-view .student-photo {
+  .students-grid.list-view .student-avatar {
     width: 100px;
     height: 100px;
   }
 
-  .students-grid.list-view .student-photo img,
-  .students-grid.list-view .photo-placeholder {
-    width: 100px;
-    height: 100px;
+  .students-grid.list-view .student-avatar .default-avatar-svg {
+    width: 50px;
+    height: 50px;
   }
 
   .modal-content {
@@ -821,8 +810,8 @@
   .hover-delete-btn {
     width: 32px;
     height: 32px;
-    top: 16px;
-    right: 16px;
+    top: 12px;
+    right: 12px;
   }
 
   .icon-svg {
@@ -833,6 +822,16 @@
   .icon-svg-small {
     width: 14px;
     height: 14px;
+  }
+
+  .default-avatar-svg {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .student-avatar {
+    margin-top: 30px;
+    height: 100px;
   }
 }
 
@@ -871,5 +870,20 @@
   .details-btn,
   .receipt-btn {
     padding: 14px 16px;
+  }
+
+  .default-avatar-svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .student-avatar {
+    margin-top: 25px;
+    height: 80px;
+  }
+
+  .student-detail-avatar .default-avatar-svg {
+    width: 100px !important;
+    height: 100px !important;
   }
 }
