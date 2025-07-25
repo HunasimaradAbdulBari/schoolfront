@@ -360,6 +360,11 @@
   min-height: 460px;
   max-height: 460px;
 }
+.grid-view .student-card .default-avatar-svg{
+  border-radius: 50%;
+  height: 50px;
+  width: 50px;
+}
 
 /* Hover Delete Button - Fixed positioning to avoid overlap */
 .hover-delete-btn {
