@@ -25,7 +25,7 @@ const Login = () => {
     try {
       const result = await login(username, password);
       if (result.success) {
-        navigate('/students');
+        navigate('AstraLandingPage');
       } else {
         setError(result.message || 'Login failed. Please try again.');
       }
