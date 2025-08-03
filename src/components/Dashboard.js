@@ -23,6 +23,26 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // 🔧 FIX #1: Add state for last added student
+  const [lastAddedStudent, setLastAddedStudent] = useState(null);
+  
+  // 🔧 FIX #3: Add state for calculated age
+  const [calculatedAge, setCalculatedAge] = useState('');
+
+  // 🔧 FIX #3: Add age calculation function
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -36,6 +56,22 @@ const Dashboard = () => {
         ...prev,
         [name]: value
       }));
+    }
+  };
+
+  // 🔧 FIX #3: Handle date of birth change with age calculation
+  const handleDateOfBirthChange = (e) => {
+    const birthDate = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      dateOfBirth: birthDate
+    }));
+    
+    if (birthDate) {
+      const age = calculateAge(birthDate);
+      setCalculatedAge(age);
+    } else {
+      setCalculatedAge('');
     }
   };
 
@@ -69,7 +105,10 @@ const Dashboard = () => {
         }
       });
 
+      // 🔧 FIX #1: Store last added student for link
+      setLastAddedStudent(response.data);
       setSuccess('Student added successfully!');
+      
       setFormData({
         name: '',
         class: 'Play Group',
@@ -84,6 +123,7 @@ const Dashboard = () => {
         bloodGroup: '',
         allergies: ''
       });
+      setCalculatedAge('');
       
       // Reset file input
       const fileInput = document.getElementById('studentPhoto');
@@ -111,10 +151,18 @@ const Dashboard = () => {
       bloodGroup: '',
       allergies: ''
     });
+    setCalculatedAge('');
     const fileInput = document.getElementById('studentPhoto');
     if (fileInput) fileInput.value = '';
     setError('');
     setSuccess('');
+    setLastAddedStudent(null);
+  };
+
+  // 🔧 FIX #1: Function to view student details
+  const handleViewLastAddedStudent = (student) => {
+    // Navigate to students page with student data
+    navigate('/students', { state: { selectedStudent: student } });
   };
 
   return (
@@ -127,7 +175,30 @@ const Dashboard = () => {
       <div className="dashboard-content">
         <form onSubmit={handleSubmit} className="student-form">
           {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
+          {/* 🔧 FIX #1: Success message with student link */}
+          {success && (
+            <div className="success-message">
+              {success}
+              {lastAddedStudent && (
+                <div style={{ marginTop: '10px' }}>
+                  <button
+                    onClick={() => handleViewLastAddedStudent(lastAddedStudent)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#007bff',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      marginLeft: '10px'
+                    }}
+                  >
+                    View {lastAddedStudent.name}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Student Photo */}
           {/* <div className="form-section">
@@ -189,19 +260,37 @@ const Dashboard = () => {
                   type="date"
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
-                  onChange={handleInputChange}
+                  onChange={handleDateOfBirthChange}
                   disabled={loading}
                 />
               </div>
+              {/* 🔧 FIX #3: Age field appears when date of birth is entered */}
+              {calculatedAge && (
+                <div className="form-group">
+                  <label>Age</label>
+                  <input
+                    type="text"
+                    value={calculatedAge + ' years'}
+                    readOnly
+                    disabled={loading}
+                    style={{
+                      backgroundColor: '#f5f5f5',
+                      border: '1px solid #ddd',
+                      color: '#666'
+                    }}
+                  />
+                </div>
+              )}
               <div className="form-group">
-                <label>Blood Group</label>
+                {/* 🔧 FIX #2: Added asterisk (*) to Blood Group label */}
+                <label>Blood Group *</label>
                 <select
                   name="bloodGroup"
                   value={formData.bloodGroup}
                   onChange={handleInputChange}
                   disabled={loading}
                 >
-                  <option value="">Select Blood Group *</option>
+                  <option value="">Select Blood Group </option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
                   <option value="B+">B+</option>
@@ -322,7 +411,6 @@ const Dashboard = () => {
             <button type="button" onClick={handleClear} className="clear-btn" disabled={loading}>
               Clear Form
             </button>
-            
           </div>
         </form>
       </div>
