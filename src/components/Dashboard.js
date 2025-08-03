@@ -201,7 +201,7 @@ const Dashboard = () => {
                   onChange={handleInputChange}
                   disabled={loading}
                 >
-                  <option value="">Select Blood Group</option>
+                  <option value="">Select Blood Group *</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
                   <option value="B+">B+</option>
