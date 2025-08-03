@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { api } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Updated import
 import '../styles/Students.css';
 
 const Students = () => {
@@ -14,6 +14,7 @@ const Students = () => {
   const [editForm, setEditForm] = useState({});
   const [viewMode, setViewMode] = useState('grid');
   const navigate = useNavigate();
+  const location = useLocation(); // Added this line
 
   // Default Avatar SVG Component
   const DefaultAvatar = () => (
@@ -26,6 +27,20 @@ const Students = () => {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  // 🔧 NEW: Add this useEffect to handle navigation from Dashboard
+  useEffect(() => {
+    // Check if we're coming from Dashboard with a student to show
+    if (location.state?.openStudentModal && location.state?.selectedStudent) {
+      const studentToShow = location.state.selectedStudent;
+      setSelectedStudent(studentToShow);
+      setEditForm(studentToShow);
+      setIsEditMode(false);
+      
+      // Clear the navigation state to prevent reopening on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // API functions
   const fetchStudents = async () => {
@@ -509,7 +524,8 @@ const Students = () => {
                   <button onClick={closeStudentDetails} className="close-modal-btn">
                     <svg className="icon-svg-small" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-                    </svg></button>
+                    </svg>
+                  </button>
                 </>
               )}
             </div>

@@ -159,10 +159,15 @@ const Dashboard = () => {
     setLastAddedStudent(null);
   };
 
-  // 🔧 FIX #1: Function to view student details
+  // 🔧 UPDATED FIX #1: Navigate and show specific student modal
   const handleViewLastAddedStudent = (student) => {
-    // Navigate to students page with student data
-    navigate('/students', { state: { selectedStudent: student } });
+    // Navigate to students page with state containing the student to be shown
+    navigate('/students', { 
+      state: { 
+        openStudentModal: true,
+        selectedStudent: student 
+      } 
+    });
   };
 
   return (
@@ -294,7 +299,6 @@ const Dashboard = () => {
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
                   <option value="B+">B+</option>
-                  <option value="B-">B-</option>
                   <option value="AB+">AB+</option>
                   <option value="AB-">AB-</option>
                   <option value="O+">O+</option>
