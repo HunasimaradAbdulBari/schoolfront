@@ -12,43 +12,108 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser({ token });
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setUser(parsedUser);
+        console.log('✅ User restored from localStorage:', parsedUser);
+      } catch (error) {
+        console.error('❌ Error parsing stored user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
 
   const login = async (username, password) => {
     try {
-      const res = await api.post('/api/auth/login', { username, password });
-      const { token, user } = res.data;
+      console.log('🔍 Frontend login attempt:', { username });
+      
+      const response = await api.post('/api/auth/login', { 
+        username: username.trim(), 
+        password: password.trim() 
+      });
+      
+      console.log('✅ Login response received:', response.data);
+      
+      const { token, user: userData } = response.data;
+      
+      if (!token || !userData) {
+        console.error('❌ Invalid response format:', response.data);
+        return { success: false, message: 'Invalid response from server' };
+      }
+      
+      // Store token and user data
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Set authorization header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(user);
+      
+      // Update state
+      setUser(userData);
+      
+      console.log('✅ Login successful, user set:', userData);
       return { success: true };
+      
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Login failed' };
+      console.error('❌ Login error:', error);
+      console.error('❌ Error response:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Login failed. Please try again.';
+      
+      return { success: false, message: errorMessage };
     }
   };
 
-  const register = async ({ username, password, name }) => {
+  const register = async ({ username, password, name, email }) => {
     try {
-      await api.post('/api/auth/register', { username, password, name });
+      console.log('🔍 Frontend register attempt:', { username, name, email });
+      
+      const requestData = { username, password, name };
+      if (email) {
+        requestData.email = email;
+      }
+      
+      await api.post('/api/auth/register', requestData);
+      console.log('✅ Registration successful');
       return { success: true };
+      
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Registration failed' };
+      console.error('❌ Registration error:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Registration failed. Please try again.';
+      
+      return { success: false, message: errorMessage };
     }
   };
 
   const logout = () => {
+    console.log('🔍 Logging out user');
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
+    console.log('✅ Logout complete');
+  };
+
+  const value = {
+    user,
+    login,
+    register,
+    logout,
+    loading
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
