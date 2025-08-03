@@ -7,7 +7,8 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 10000 // 10 second timeout
+  timeout: 30000, // Increased to 30 seconds
+  withCredentials: false // Explicitly set for CORS
 });
 
 // Request interceptor
@@ -17,18 +18,21 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('🔍 API Request:', {
+    
+    console.log('🔍 API Request Details:', {
       method: config.method?.toUpperCase(),
       url: config.url,
       baseURL: config.baseURL,
       fullURL: `${config.baseURL}${config.url}`,
       headers: config.headers,
-      data: config.data
+      data: config.data,
+      timeout: config.timeout
     });
+    
     return config;
   },
   (error) => {
-    console.error('❌ API Request Error:', error);
+    console.error('❌ API Request Setup Error:', error);
     return Promise.reject(error);
   }
 );
@@ -36,25 +40,40 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', {
+    console.log('✅ API Response Success:', {
       status: response.status,
       statusText: response.statusText,
       url: response.config.url,
-      data: response.data
+      data: response.data,
+      headers: response.headers
     });
     return response;
   },
   (error) => {
-    console.error('❌ API Response Error:', {
+    console.error('❌ API Response Error Details:', {
       message: error.message,
+      code: error.code,
       status: error.response?.status,
       statusText: error.response?.statusText,
       url: error.config?.url,
-      data: error.response?.data
+      responseData: error.response?.data,
+      requestData: error.config?.data,
+      isNetworkError: !error.response,
+      isTimeoutError: error.code === 'ECONNABORTED'
     });
+    
+    // Handle specific error types
+    if (error.code === 'ECONNABORTED') {
+      console.error('🕐 Request timeout - server may be slow or unreachable');
+    }
+    
+    if (!error.response) {
+      console.error('🌐 Network error - cannot reach server');
+    }
     
     // Handle token expiration
     if (error.response?.status === 401) {
+      console.log('🔒 Unauthorized - clearing tokens');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete api.defaults.headers.common['Authorization'];

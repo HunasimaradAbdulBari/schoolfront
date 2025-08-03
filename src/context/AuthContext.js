@@ -40,10 +40,24 @@ export const AuthProvider = ({ children }) => {
       
       console.log('✅ Login response received:', response.data);
       
-      const { token, user: userData } = response.data;
+      // 🔧 FIX: Handle both response formats
+      let token, userData;
+      
+      if (response.data.success) {
+        // New format: { success: true, token, user }
+        token = response.data.token;
+        userData = response.data.user;
+      } else if (response.data.token) {
+        // Old format: { token, user }
+        token = response.data.token;
+        userData = response.data.user;
+      } else {
+        console.error('❌ Invalid response format:', response.data);
+        return { success: false, message: 'Invalid response from server' };
+      }
       
       if (!token || !userData) {
-        console.error('❌ Invalid response format:', response.data);
+        console.error('❌ Missing token or user data:', { token: !!token, userData: !!userData });
         return { success: false, message: 'Invalid response from server' };
       }
       
@@ -63,10 +77,22 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('❌ Login error:', error);
       console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Error code:', error.code);
       
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          'Login failed. Please try again.';
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Connection timeout. Please check your internet connection.';
+      } else if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error. Cannot connect to server.';
+      } else if (!error.response) {
+        errorMessage = 'Cannot connect to server. Please try again later.';
+      } else if (error.response.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
       
       return { success: false, message: errorMessage };
     }
@@ -77,19 +103,31 @@ export const AuthProvider = ({ children }) => {
       console.log('🔍 Frontend register attempt:', { username, name, email });
       
       const requestData = { username, password, name };
-      if (email) {
-        requestData.email = email;
+      if (email && email.trim()) {
+        requestData.email = email.trim();
       }
       
-      await api.post('/api/auth/register', requestData);
-      console.log('✅ Registration successful');
-      return { success: true };
+      const response = await api.post('/api/auth/register', requestData);
+      console.log('✅ Registration successful:', response.data);
+      return { success: true, message: response.data.message };
       
     } catch (error) {
       console.error('❌ Registration error:', error);
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          'Registration failed. Please try again.';
+      console.error('❌ Error response:', error.response?.data);
+      
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Connection timeout. Please check your internet connection.';
+      } else if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error. Cannot connect to server.';
+      } else if (!error.response) {
+        errorMessage = 'Cannot connect to server. Please try again later.';
+      } else if (error.response.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
       
       return { success: false, message: errorMessage };
     }
