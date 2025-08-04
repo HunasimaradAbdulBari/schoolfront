@@ -1,14 +1,15 @@
-// src/services/api.js
+// src/services/api.js - Complete API service with your URLs
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
+// Create axios instance with your backend URL
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 30000, // Increased to 30 seconds
-  withCredentials: false // Explicitly set for CORS
+  timeout: 30000,
+  withCredentials: false
 });
 
 // Request interceptor
@@ -19,15 +20,15 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    console.log('🔍 API Request Details:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      baseURL: config.baseURL,
-      fullURL: `${config.baseURL}${config.url}`,
-      headers: config.headers,
-      data: config.data,
-      timeout: config.timeout
-    });
+    // Log requests in development
+    if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+      console.log('🔍 API Request:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        fullURL: `${config.baseURL}${config.url}`,
+        headers: config.headers
+      });
+    }
     
     return config;
   },
@@ -40,46 +41,44 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response Success:', {
-      status: response.status,
-      statusText: response.statusText,
-      url: response.config.url,
-      data: response.data,
-      headers: response.headers
-    });
+    // Log successful responses in development
+    if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+      console.log('✅ API Response Success:', {
+        status: response.status,
+        url: response.config.url,
+        data: response.data
+      });
+    }
     return response;
   },
   (error) => {
-    console.error('❌ API Response Error Details:', {
+    console.error('❌ API Response Error:', {
       message: error.message,
-      code: error.code,
       status: error.response?.status,
-      statusText: error.response?.statusText,
       url: error.config?.url,
       responseData: error.response?.data,
-      requestData: error.config?.data,
       isNetworkError: !error.response,
       isTimeoutError: error.code === 'ECONNABORTED'
     });
     
     // Handle specific error types
     if (error.code === 'ECONNABORTED') {
-      console.error('🕐 Request timeout - server may be slow or unreachable');
+      console.error('🕐 Request timeout - server may be slow');
     }
     
     if (!error.response) {
-      console.error('🌐 Network error - cannot reach server');
+      console.error('🌐 Network error - cannot reach server at:', API_BASE_URL);
     }
     
-    // Handle token expiration
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
-      console.log('🔒 Unauthorized - clearing tokens');
+      console.log('🔒 Unauthorized - clearing tokens and redirecting');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete api.defaults.headers.common['Authorization'];
       
-      // Only redirect if we're not already on login page
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      // Only redirect if not already on auth pages
+      if (!['/login', '/register'].includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     }
@@ -87,3 +86,34 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// API health check function
+export const checkAPIHealth = async () => {
+  try {
+    console.log('🔍 Checking API health at:', API_BASE_URL);
+    const response = await api.get('/health');
+    console.log('✅ API Health Check Success:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ API Health Check Failed:', error);
+    throw error;
+  }
+};
+
+// Test connection function
+export const testConnection = async () => {
+  try {
+    const healthData = await checkAPIHealth();
+    return {
+      success: true,
+      message: 'Connection successful',
+      data: healthData
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Connection failed',
+      error: error.message
+    };
+  }
+};
