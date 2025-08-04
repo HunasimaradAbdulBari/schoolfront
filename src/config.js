@@ -1,7 +1,7 @@
 // Debug version - replace your config.js temporarily
-// export const API_BASE_URL = "https://astrawebserver.onrender.com";
+// export const API_BASE_URL = "https://astrawebserver.onrender.com ";
 // For local development
-export const API_BASE_URL = "http://localhost:5000";
+export const API_BASE_URL = "http://localhost:5000,https://astrawebserver.onrender.com";
 
 // For production (comment out during local development)
 // export const API_BASE_URL = "https://astrawebserver.onrender.com";
