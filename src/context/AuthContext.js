@@ -40,25 +40,47 @@ export const AuthProvider = ({ children }) => {
       
       console.log('✅ Login response received:', response.data);
       
-      // 🔧 FIX: Handle both response formats
+      // 🔧 ENHANCED: More robust response format handling
       let token, userData;
       
-      if (response.data.success) {
-        // New format: { success: true, token, user }
+      // Handle new format: { success: true, token, user }
+      if (response.data.success && response.data.token && response.data.user) {
         token = response.data.token;
         userData = response.data.user;
-      } else if (response.data.token) {
-        // Old format: { token, user }
+      } 
+      // Handle old format: { token, user } (without success field)
+      else if (response.data.token && response.data.user) {
         token = response.data.token;
         userData = response.data.user;
-      } else {
+      }
+      // Handle edge case: success true but missing data
+      else if (response.data.success === false) {
+        console.error('❌ Login failed - server returned success: false');
+        return { 
+          success: false, 
+          message: response.data.message || 'Login failed' 
+        };
+      }
+      // Handle unexpected format
+      else {
         console.error('❌ Invalid response format:', response.data);
-        return { success: false, message: 'Invalid response from server' };
+        return { 
+          success: false, 
+          message: 'Invalid response from server. Please try again.' 
+        };
       }
       
-      if (!token || !userData) {
-        console.error('❌ Missing token or user data:', { token: !!token, userData: !!userData });
-        return { success: false, message: 'Invalid response from server' };
+      // 🔧 ENHANCED: Strict validation before proceeding
+      if (!token || !userData || !userData._id) {
+        console.error('❌ Missing critical data:', { 
+          hasToken: !!token, 
+          hasUserData: !!userData,
+          hasUserId: !!(userData && userData._id)
+        });
+        return { 
+          success: false, 
+          message: 'Incomplete login data received. Please try again.' 
+        };
       }
       
       // Store token and user data
@@ -82,14 +104,19 @@ export const AuthProvider = ({ children }) => {
       
       let errorMessage = 'Login failed. Please try again.';
       
+      // 🔧 ENHANCED: More specific error handling
       if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Connection timeout. Please check your internet connection.';
+        errorMessage = 'Connection timeout. Please check your internet connection and try again.';
       } else if (error.code === 'ERR_NETWORK') {
-        errorMessage = 'Network error. Cannot connect to server.';
+        errorMessage = 'Network error. Cannot connect to server. Please check your internet connection.';
       } else if (!error.response) {
-        errorMessage = 'Cannot connect to server. Please try again later.';
+        errorMessage = 'Cannot connect to server. Please check your internet connection and try again later.';
+      } else if (error.response.status === 0) {
+        errorMessage = 'Network error. Please check your internet connection.';
       } else if (error.response.status >= 500) {
-        errorMessage = 'Server error. Please try again later.';
+        errorMessage = 'Server error. Please try again in a few moments.';
+      } else if (error.response.status === 429) {
+        errorMessage = 'Too many attempts. Please wait a moment and try again.';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
@@ -109,7 +136,19 @@ export const AuthProvider = ({ children }) => {
       
       const response = await api.post('/api/auth/register', requestData);
       console.log('✅ Registration successful:', response.data);
-      return { success: true, message: response.data.message };
+      
+      // 🔧 ENHANCED: Handle both response formats for registration too
+      if (response.data.success !== false) {
+        return { 
+          success: true, 
+          message: response.data.message || 'Registration successful! Please login.' 
+        };
+      } else {
+        return { 
+          success: false, 
+          message: response.data.message || 'Registration failed' 
+        };
+      }
       
     } catch (error) {
       console.error('❌ Registration error:', error);
@@ -117,14 +156,19 @@ export const AuthProvider = ({ children }) => {
       
       let errorMessage = 'Registration failed. Please try again.';
       
+      // 🔧 ENHANCED: Same improved error handling as login
       if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Connection timeout. Please check your internet connection.';
+        errorMessage = 'Connection timeout. Please check your internet connection and try again.';
       } else if (error.code === 'ERR_NETWORK') {
-        errorMessage = 'Network error. Cannot connect to server.';
+        errorMessage = 'Network error. Cannot connect to server. Please check your internet connection.';
       } else if (!error.response) {
-        errorMessage = 'Cannot connect to server. Please try again later.';
+        errorMessage = 'Cannot connect to server. Please check your internet connection and try again later.';
+      } else if (error.response.status === 0) {
+        errorMessage = 'Network error. Please check your internet connection.';
       } else if (error.response.status >= 500) {
-        errorMessage = 'Server error. Please try again later.';
+        errorMessage = 'Server error. Please try again in a few moments.';
+      } else if (error.response.status === 429) {
+        errorMessage = 'Too many attempts. Please wait a moment and try again.';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
@@ -142,12 +186,36 @@ export const AuthProvider = ({ children }) => {
     console.log('✅ Logout complete');
   };
 
+  // 🔧 ADDED: Method to check if user is authenticated
+  const isAuthenticated = () => {
+    return !!user && !!localStorage.getItem('token');
+  };
+
+  // 🔧 ADDED: Method to refresh user data if needed
+  const refreshUser = () => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        return parsedUser;
+      } catch (error) {
+        console.error('❌ Error refreshing user data:', error);
+        logout();
+        return null;
+      }
+    }
+    return null;
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
-    loading
+    loading,
+    isAuthenticated,
+    refreshUser
   };
 
   return (
