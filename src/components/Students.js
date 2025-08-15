@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { api } from '../services/api';
-import { useNavigate, useLocation } from 'react-router-dom'; // Updated import
+import { useNavigate, useLocation } from 'react-router-dom';
+import { API_BASE_URL } from '../config'; // Added this import
 import '../styles/Students.css';
 
 const Students = () => {
@@ -14,7 +15,7 @@ const Students = () => {
   const [editForm, setEditForm] = useState({});
   const [viewMode, setViewMode] = useState('grid');
   const navigate = useNavigate();
-  const location = useLocation(); // Added this line
+  const location = useLocation();
 
   // Default Avatar SVG Component
   const DefaultAvatar = () => (
@@ -23,12 +24,36 @@ const Students = () => {
     </svg>
   );
 
+  // Student Avatar Component with Image Support
+  const StudentAvatar = ({ student, className = "" }) => {
+    const [imageError, setImageError] = useState(false);
+    
+    // Check if student has a photo and no image error occurred
+    const hasValidPhoto = student?.studentPhoto && !imageError;
+    
+    if (hasValidPhoto) {
+      return (
+        <img
+          src={`${API_BASE_URL}${student.studentPhoto}`}
+          alt={`${student.name}'s photo`}
+          className={`student-photo ${className}`}
+          onError={() => setImageError(true)}
+          onLoad={() => setImageError(false)}
+          style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '50%' }}
+        />
+      );
+    }
+    
+    // Fallback to default avatar
+    return <DefaultAvatar />;
+  };
+
   // Effects
   useEffect(() => {
     fetchStudents();
   }, []);
 
-  // 🔧 NEW: Add this useEffect to handle navigation from Dashboard
+  // Handle navigation from Dashboard
   useEffect(() => {
     // Check if we're coming from Dashboard with a student to show
     if (location.state?.openStudentModal && location.state?.selectedStudent) {
@@ -87,13 +112,12 @@ const Students = () => {
   // Optimized event handlers using useCallback
   const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
   const handleClassFilter = useCallback((e) => setSelectedClass(e.target.value), []);
-
   const handleEditChange = useCallback((e) => {
     const { name, value } = e.target;
     setEditForm(prev => ({ ...prev, [name]: value }));
   }, []);
 
-  // Optimized filtered students using useMemo
+  // Optimized filtered students using useMemo - Fixed the logic error
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
       const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -196,23 +220,23 @@ const Students = () => {
         </style>
       </head>
       <body>
-        <div className="receipt-header">
+        <div class="receipt-header">
           <h1>ASTRA PRESCHOOL</h1>
           <p>5th Cross, Ganesh Temple Road, Sadashiv Nagar, Tumkur - 572101</p>
           <p>Phone: 9008887230</p>
           <h2 style="margin-top: 20px;">PAYMENT RECEIPT</h2>
         </div>
-        <div className="receipt-details">
-          <div className="receipt-row"><strong>Student Name:</strong><span>${student.name}</span></div>
-          <div className="receipt-row"><strong>Class:</strong><span>${student.class}</span></div>
-          <div className="receipt-row"><strong>Parent Name:</strong><span>${student.parentName || 'N/A'}</span></div>
-          <div className="receipt-row"><strong>Parent Phone:</strong><span>${student.parentPhone || 'N/A'}</span></div>
-          <div className="receipt-row"><strong>Fee Paid:</strong><span>₹${student.feePaid}</span></div>
-          <div className="receipt-row"><strong>Balance:</strong><span>₹${student.balance}</span></div>
-          <div className="receipt-row total-row"><strong>Total Amount:</strong><span>₹${parseInt(student.feePaid) + parseInt(student.balance)}</span></div>
-          <div className="receipt-row"><strong>Payment Date:</strong><span>${new Date(student.date).toLocaleDateString('en-IN')}</span></div>
+        <div class="receipt-details">
+          <div class="receipt-row"><strong>Student Name:</strong><span>${student.name}</span></div>
+          <div class="receipt-row"><strong>Class:</strong><span>${student.class}</span></div>
+          <div class="receipt-row"><strong>Parent Name:</strong><span>${student.parentName || 'N/A'}</span></div>
+          <div class="receipt-row"><strong>Parent Phone:</strong><span>${student.parentPhone || 'N/A'}</span></div>
+          <div class="receipt-row"><strong>Fee Paid:</strong><span>₹${student.feePaid}</span></div>
+          <div class="receipt-row"><strong>Balance:</strong><span>₹${student.balance}</span></div>
+          <div class="receipt-row total-row"><strong>Total Amount:</strong><span>₹${parseInt(student.feePaid) + parseInt(student.balance)}</span></div>
+          <div class="receipt-row"><strong>Payment Date:</strong><span>${new Date(student.date).toLocaleDateString('en-IN')}</span></div>
         </div>
-        <div className="receipt-footer">
+        <div class="receipt-footer">
           <p>Thank you for your payment!</p>
           <p>Generated on ${new Date().toLocaleDateString('en-IN')} at ${new Date().toLocaleTimeString('en-IN')}</p>
           <p style="margin-top: 20px; font-style: italic;">This is a computer generated receipt.</p>
@@ -220,7 +244,6 @@ const Students = () => {
       </body>
       </html>
     `;
-
     const blob = new Blob([receiptHTML], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -245,23 +268,23 @@ const Students = () => {
           </style>
         </head>
         <body>
-          <div className="header">
+          <div class="header">
             <h2>ASTRA PRESCHOOL</h2>
             <p>Student Detail Printout</p>
             <hr />
           </div>
-          <div className="details">
-            <div className="detail-row"><strong>Name:</strong> ${student.name}</div>
-            <div className="detail-row"><strong>Class:</strong> ${student.class}</div>
-            <div className="detail-row"><strong>Parent:</strong> ${student.parentName || 'N/A'}</div>
-            <div className="detail-row"><strong>Phone:</strong> ${student.parentPhone || 'N/A'}</div>
-            <div className="detail-row"><strong>Date of Birth:</strong> ${student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : 'N/A'}</div>
-            <div className="detail-row"><strong>Blood Group:</strong> ${student.bloodGroup || 'N/A'}</div>
-            <div className="detail-row"><strong>Address:</strong> ${student.address || 'N/A'}</div>
-            <div className="detail-row"><strong>Fee Paid:</strong> ₹${student.feePaid}</div>
-            <div className="detail-row"><strong>Balance:</strong> ₹${student.balance}</div>
-            <div className="detail-row"><strong>Payment Date:</strong> ${student.date ? new Date(student.date).toLocaleDateString() : 'N/A'}</div>
-            <div className="detail-row"><strong>Allergies:</strong> ${student.allergies || 'N/A'}</div>
+          <div class="details">
+            <div class="detail-row"><strong>Name:</strong> ${student.name}</div>
+            <div class="detail-row"><strong>Class:</strong> ${student.class}</div>
+            <div class="detail-row"><strong>Parent:</strong> ${student.parentName || 'N/A'}</div>
+            <div class="detail-row"><strong>Phone:</strong> ${student.parentPhone || 'N/A'}</div>
+            <div class="detail-row"><strong>Date of Birth:</strong> ${student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : 'N/A'}</div>
+            <div class="detail-row"><strong>Blood Group:</strong> ${student.bloodGroup || 'N/A'}</div>
+            <div class="detail-row"><strong>Address:</strong> ${student.address || 'N/A'}</div>
+            <div class="detail-row"><strong>Fee Paid:</strong> ₹${student.feePaid}</div>
+            <div class="detail-row"><strong>Balance:</strong> ₹${student.balance}</div>
+            <div class="detail-row"><strong>Payment Date:</strong> ${student.date ? new Date(student.date).toLocaleDateString() : 'N/A'}</div>
+            <div class="detail-row"><strong>Allergies:</strong> ${student.allergies || 'N/A'}</div>
           </div>
           <p style="margin-top: 30px; font-style: italic; text-align: center;">Printed on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
         </body>
@@ -404,7 +427,7 @@ const Students = () => {
               </button>
               
               <div className="student-avatar">
-                <DefaultAvatar />
+                <StudentAvatar student={student} />
               </div>
               <div className="student-info">
                 <h3>{student.name}</h3>
@@ -458,7 +481,7 @@ const Students = () => {
               ) : (
                 <>
                   <div className="student-detail-avatar">
-                    <DefaultAvatar />
+                    <StudentAvatar student={selectedStudent} className="modal-avatar" />
                   </div>
                   <div className="student-details">
                     {["Name","Class","Date of Birth","Blood Group","Address","Parent Name","Parent Phone","Fee Paid","Balance","Payment Date","Allergies/Medical Notes"].map((label, idx) => {
@@ -469,7 +492,7 @@ const Students = () => {
                         9: "date", 10: "allergies"
                       };
                       const val = selectedStudent[keyMap[idx]];
-                      const display = keyMap[idx]==="date" || keyMap[idx]==="dateOfBirth"
+                      const display = (keyMap[idx] === "date" || keyMap[idx] === "dateOfBirth")
                         ? val ? new Date(val).toLocaleDateString() : 'N/A'
                         : val || 'N/A';
                       return (
