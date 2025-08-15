@@ -206,7 +206,7 @@ const Dashboard = () => {
           )}
 
           {/* Student Photo */}
-          {/* <div className="form-section">
+          <div className="form-section">
             <h3>Student Photo</h3>
             <div className="photo-upload">
               <input
@@ -224,7 +224,7 @@ const Dashboard = () => {
                 <span className="file-name">{formData.studentPhoto.name}</span>
               )}
             </div>
-          </div> */}
+          </div>
 
           {/* Student Information */}
           <div className="form-section">
