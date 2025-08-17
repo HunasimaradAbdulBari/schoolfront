@@ -1,6 +1,6 @@
-// src/context/AuthContext.js - FIXED LOGIN ISSUE
+// src/context/AuthContext.js - COMPLETE FIXED VERSION with retry logic and better error handling
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { api, retryRequest, wakeUpServer, testConnection } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -9,6 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState('checking'); // checking, connected, disconnected
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -26,25 +27,62 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user');
       }
     }
+    
+    // ✅ NEW: Test connection on startup
+    checkConnection();
     setLoading(false);
   }, []);
 
-  // 🔧 FIXED: Simplified and corrected login function
+  // ✅ NEW: Connection check function
+  const checkConnection = async () => {
+    try {
+      setConnectionStatus('checking');
+      const result = await testConnection();
+      setConnectionStatus(result.success ? 'connected' : 'disconnected');
+      
+      if (!result.success) {
+        console.log('🔄 Connection failed, attempting to wake up server...');
+        await wakeUpServer();
+        
+        // Try connection test again after wake up
+        const retryResult = await testConnection();
+        setConnectionStatus(retryResult.success ? 'connected' : 'disconnected');
+      }
+    } catch (error) {
+      console.error('❌ Connection check failed:', error);
+      setConnectionStatus('disconnected');
+    }
+  };
+
+  // ✅ ENHANCED: Login function with retry logic and server wake-up
   const login = async (username, password) => {
     try {
       console.log('🔍 Frontend login attempt:', { username });
       
-      const response = await api.post('/api/auth/login', { 
-        username: username.trim(), 
-        password: password.trim() 
+      // ✅ ADDED: Check connection first
+      if (connectionStatus === 'disconnected') {
+        console.log('🔄 Server appears to be asleep, attempting to wake up...');
+        await wakeUpServer();
+        await checkConnection();
+      }
+      
+      // ✅ ENHANCED: Use retry wrapper for login request
+      const response = await retryRequest(async () => {
+        return await api.post('/api/auth/login', { 
+          username: username.trim(), 
+          password: password.trim() 
+        });
+      }, {
+        maxRetries: 3,
+        delay: 2000,
+        backoff: true
       });
       
       console.log('✅ Login response received:', response.data);
       
-      // 🔧 FIXED: Your backend returns { success: true, token, user }
+      // ✅ Your existing response handling logic (unchanged)
       const { success, token, user: userData, message } = response.data;
       
-      // Check if login was successful
       if (!success) {
         console.log('❌ Login failed - success is false:', message);
         return { 
@@ -53,7 +91,6 @@ export const AuthProvider = ({ children }) => {
         };
       }
       
-      // Validate that we have token and user data
       if (!token || !userData || !userData._id) {
         console.error('❌ Missing critical data:', { 
           hasToken: !!token, 
@@ -75,6 +112,7 @@ export const AuthProvider = ({ children }) => {
       
       // Update state
       setUser(userData);
+      setConnectionStatus('connected'); // Mark as connected after successful login
       
       console.log('✅ Login successful, user set:', userData);
       return { success: true };
@@ -87,15 +125,18 @@ export const AuthProvider = ({ children }) => {
       
       let errorMessage = 'Login failed. Please try again.';
       
-      // Handle specific error types
+      // ✅ ENHANCED: Better error messages for different scenarios
       if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Connection timeout. Please check your internet connection and try again.';
+        errorMessage = 'Connection timeout. The server might be starting up, please wait a moment and try again.';
       } else if (error.code === 'ERR_NETWORK') {
         errorMessage = 'Network error. Cannot connect to server. Please check your internet connection.';
+        setConnectionStatus('disconnected');
       } else if (!error.response) {
-        errorMessage = 'Cannot connect to server. Please check your internet connection and try again later.';
+        errorMessage = 'Cannot connect to server. The server might be starting up, please try again in a moment.';
+        setConnectionStatus('disconnected');
       } else if (error.response.status === 0) {
         errorMessage = 'Network error. Please check your internet connection.';
+        setConnectionStatus('disconnected');
       } else if (error.response.status >= 500) {
         errorMessage = 'Server error. Please try again in a few moments.';
       } else if (error.response.status === 429) {
@@ -108,22 +149,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ ENHANCED: Register function with retry logic
   const register = async ({ username, password, name, email }) => {
     try {
       console.log('🔍 Frontend register attempt:', { username, name, email });
+      
+      // ✅ ADDED: Check connection first
+      if (connectionStatus === 'disconnected') {
+        console.log('🔄 Server appears to be asleep, attempting to wake up...');
+        await wakeUpServer();
+        await checkConnection();
+      }
       
       const requestData = { username, password, name };
       if (email && email.trim()) {
         requestData.email = email.trim();
       }
       
-      const response = await api.post('/api/auth/register', requestData);
+      // ✅ ENHANCED: Use retry wrapper for register request
+      const response = await retryRequest(async () => {
+        return await api.post('/api/auth/register', requestData);
+      }, {
+        maxRetries: 3,
+        delay: 2000,
+        backoff: true
+      });
+      
       console.log('✅ Registration successful:', response.data);
       
-      // 🔧 FIXED: Handle registration response properly
       const { success, message } = response.data;
       
       if (success !== false) {
+        setConnectionStatus('connected'); // Mark as connected after successful registration
         return { 
           success: true, 
           message: message || 'Registration successful! Please login.' 
@@ -141,14 +198,18 @@ export const AuthProvider = ({ children }) => {
       
       let errorMessage = 'Registration failed. Please try again.';
       
+      // ✅ ENHANCED: Better error messages for different scenarios
       if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Connection timeout. Please check your internet connection and try again.';
+        errorMessage = 'Connection timeout. The server might be starting up, please wait a moment and try again.';
       } else if (error.code === 'ERR_NETWORK') {
         errorMessage = 'Network error. Cannot connect to server. Please check your internet connection.';
+        setConnectionStatus('disconnected');
       } else if (!error.response) {
-        errorMessage = 'Cannot connect to server. Please check your internet connection and try again later.';
+        errorMessage = 'Cannot connect to server. The server might be starting up, please try again in a moment.';
+        setConnectionStatus('disconnected');
       } else if (error.response.status === 0) {
         errorMessage = 'Network error. Please check your internet connection.';
+        setConnectionStatus('disconnected');
       } else if (error.response.status >= 500) {
         errorMessage = 'Server error. Please try again in a few moments.';
       } else if (error.response.status === 429) {
@@ -192,6 +253,12 @@ export const AuthProvider = ({ children }) => {
     return null;
   };
 
+  // ✅ NEW: Retry connection function for UI
+  const retryConnection = async () => {
+    await checkConnection();
+    return connectionStatus;
+  };
+
   const value = {
     user,
     login,
@@ -199,7 +266,10 @@ export const AuthProvider = ({ children }) => {
     logout,
     loading,
     isAuthenticated,
-    refreshUser
+    refreshUser,
+    connectionStatus, // ✅ NEW: Expose connection status
+    retryConnection, // ✅ NEW: Expose retry function
+    checkConnection  // ✅ NEW: Expose check function
   };
 
   return (
