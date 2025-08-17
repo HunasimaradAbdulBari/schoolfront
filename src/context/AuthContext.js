@@ -1,4 +1,4 @@
-// src/context/AuthContext.js
+// src/context/AuthContext.js - FIXED LOGIN ISSUE
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
 
@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // 🔧 FIXED: Simplified and corrected login function
   const login = async (username, password) => {
     try {
       console.log('🔍 Frontend login attempt:', { username });
@@ -40,37 +41,19 @@ export const AuthProvider = ({ children }) => {
       
       console.log('✅ Login response received:', response.data);
       
-      // 🔧 ENHANCED: More robust response format handling
-      let token, userData;
+      // 🔧 FIXED: Your backend returns { success: true, token, user }
+      const { success, token, user: userData, message } = response.data;
       
-      // Handle new format: { success: true, token, user }
-      if (response.data.success && response.data.token && response.data.user) {
-        token = response.data.token;
-        userData = response.data.user;
-      } 
-      // Handle old format: { token, user } (without success field)
-      else if (response.data.token && response.data.user) {
-        token = response.data.token;
-        userData = response.data.user;
-      }
-      // Handle edge case: success true but missing data
-      else if (response.data.success === false) {
-        console.error('❌ Login failed - server returned success: false');
+      // Check if login was successful
+      if (!success) {
+        console.log('❌ Login failed - success is false:', message);
         return { 
           success: false, 
-          message: response.data.message || 'Login failed' 
-        };
-      }
-      // Handle unexpected format
-      else {
-        console.error('❌ Invalid response format:', response.data);
-        return { 
-          success: false, 
-          message: 'Invalid response from server. Please try again.' 
+          message: message || 'Login failed' 
         };
       }
       
-      // 🔧 ENHANCED: Strict validation before proceeding
+      // Validate that we have token and user data
       if (!token || !userData || !userData._id) {
         console.error('❌ Missing critical data:', { 
           hasToken: !!token, 
@@ -104,7 +87,7 @@ export const AuthProvider = ({ children }) => {
       
       let errorMessage = 'Login failed. Please try again.';
       
-      // 🔧 ENHANCED: More specific error handling
+      // Handle specific error types
       if (error.code === 'ECONNABORTED') {
         errorMessage = 'Connection timeout. Please check your internet connection and try again.';
       } else if (error.code === 'ERR_NETWORK') {
@@ -137,16 +120,18 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/api/auth/register', requestData);
       console.log('✅ Registration successful:', response.data);
       
-      // 🔧 ENHANCED: Handle both response formats for registration too
-      if (response.data.success !== false) {
+      // 🔧 FIXED: Handle registration response properly
+      const { success, message } = response.data;
+      
+      if (success !== false) {
         return { 
           success: true, 
-          message: response.data.message || 'Registration successful! Please login.' 
+          message: message || 'Registration successful! Please login.' 
         };
       } else {
         return { 
           success: false, 
-          message: response.data.message || 'Registration failed' 
+          message: message || 'Registration failed' 
         };
       }
       
@@ -156,7 +141,6 @@ export const AuthProvider = ({ children }) => {
       
       let errorMessage = 'Registration failed. Please try again.';
       
-      // 🔧 ENHANCED: Same improved error handling as login
       if (error.code === 'ECONNABORTED') {
         errorMessage = 'Connection timeout. Please check your internet connection and try again.';
       } else if (error.code === 'ERR_NETWORK') {
@@ -186,12 +170,12 @@ export const AuthProvider = ({ children }) => {
     console.log('✅ Logout complete');
   };
 
-  // 🔧 ADDED: Method to check if user is authenticated
+  // Method to check if user is authenticated
   const isAuthenticated = () => {
     return !!user && !!localStorage.getItem('token');
   };
 
-  // 🔧 ADDED: Method to refresh user data if needed
+  // Method to refresh user data if needed
   const refreshUser = () => {
     const userData = localStorage.getItem('user');
     if (userData) {
