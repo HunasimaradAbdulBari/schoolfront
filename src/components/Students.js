@@ -126,6 +126,81 @@ const Students = () => {
     });
   }, [students, searchTerm, selectedClass]);
 
+  // ✅ NEW: CSV Export Function - FIXED VERSION
+  const exportToCSV = useCallback(() => {
+    if (filteredStudents.length === 0) {
+      alert('No students data to export!');
+      return;
+    }
+
+    try {
+      // Define CSV headers
+      const headers = [
+        'Student Name',
+        'Class',
+        'Parent Name',
+        'Parent Phone',
+        'Date of Birth',
+        'Blood Group',
+        'Address',
+        'Fee Paid',
+        'Balance',
+        'Payment Date',
+        'Allergies/Medical Notes',
+        'Registration Date'
+      ];
+
+      // Convert students data to CSV format
+      const csvData = filteredStudents.map(student => {
+        return [
+          student.name || 'N/A',
+          student.class || 'N/A',
+          student.parentName || 'N/A',
+          student.parentPhone || 'N/A',
+          student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('en-IN') : 'N/A',
+          student.bloodGroup || 'N/A',
+          student.address ? student.address.replace(/"/g, '""') : 'N/A', // Escape quotes
+          student.feePaid || '0',
+          student.balance || '0',
+          student.date ? new Date(student.date).toLocaleDateString('en-IN') : 'N/A',
+          student.allergies ? student.allergies.replace(/"/g, '""') : 'N/A', // Escape quotes
+          student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-IN') : 'N/A'
+        ];
+      });
+
+      // Combine headers and data
+      const csvContent = [headers, ...csvData]
+        .map(row => row.map(cell => `"${cell}"`).join(','))
+        .join('\n');
+
+      // Add BOM for proper Excel encoding
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+      // Create download link
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split('T')[0];
+      const filename = `Astra_Preschool_Students_${currentDate}.csv`;
+      link.setAttribute('download', filename);
+      
+      // Trigger download
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log(`✅ CSV exported: ${filename} with ${filteredStudents.length} students`);
+    } catch (error) {
+      console.error('❌ CSV export error:', error);
+      alert('Failed to export CSV. Please try again.');
+    }
+  }, [filteredStudents]);
+
   // Modal functions
   const openStudentDetails = useCallback((student) => {
     setSelectedStudent(student);
@@ -312,12 +387,20 @@ const Students = () => {
         <h1>Student Records</h1>
         <div className="header-actions">
           {students.length > 0 && (
-            <button onClick={handlePrint} className="print-btn">
-              <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fillRule="evenodd" d="M8 3a2 2 0 0 0-2 2v3h12V5a2 2 0 0 0-2-2H8Zm-3 7a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1v-4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v4h1a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5Zm4 11a1 1 0 0 1-1-1v-4h8v4a1 1 0 0 1-1 1H9Z" clipRule="evenodd"/>
-              </svg>
-              Print
-            </button>
+            <>
+              <button onClick={exportToCSV} className="add-student-btn" title="Export all student data to CSV/Excel">
+                <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2 2 2 0 0 0 2 2h12a2 2 0 0 0 2-2 2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2V4a2 2 0 0 0-2-2h-5ZM4.5 11.5A1.5 1.5 0 0 1 6 10h12a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 18 18H6a1.5 1.5 0 0 1-1.5-1.5v-5ZM6 12.25a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 6 12.25Zm2.25-.75a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5ZM6 14.25a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 6 14.25Zm2.25-.75a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Z" clipRule="evenodd"/>
+                </svg>
+                Export CSV
+              </button>
+              <button onClick={handlePrint} className="print-btn">
+                <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 3a2 2 0 0 0-2 2v3h12V5a2 2 0 0 0-2-2H8Zm-3 7a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1v-4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v4h1a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5Zm4 11a1 1 0 0 1-1-1v-4h8v4a1 1 0 0 1-1 1H9Z" clipRule="evenodd"/>
+                </svg>
+                Print
+              </button>
+            </>
           )}
           <button onClick={() => navigate('/dashboard')} className="add-student-btn">
             Add New Student
