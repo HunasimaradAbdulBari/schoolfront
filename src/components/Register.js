@@ -1,47 +1,76 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Login.css';
-import { api } from '../services/api';
 
 const Register = () => {
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     username: '',
+    email: '', // Optional
     password: '',
-    phone: '',
-    otp: '',
+    confirmPassword: ''
   });
-  const [otpSent, setOtpSent] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: value 
+    }));
   };
 
-  const sendOtp = async () => {
-    setError('');
-    setMessage('');
-    try {
-      const res = await api.post('/api/auth/send-otp', { phone: form.phone });
-      setOtpSent(true);
-      setMessage(res.data.message);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
-    }
-  };
-
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    setLoading(true);
+
+    // Validation
+    if (!formData.name.trim() || !formData.username.trim() || !formData.password.trim()) {
+      setError('Name, username, and password are required');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await api.post('/api/auth/verify-otp-register', form);
-      setMessage(res.data.message);
-      navigate('/login');
+      const result = await register({
+        name: formData.name.trim(),
+        username: formData.username.trim(),
+        email: formData.email.trim() || undefined, // Send undefined if empty
+        password: formData.password.trim()
+      });
+
+      if (result.success) {
+        setMessage(result.message || 'Registration successful! Please login.');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(result.message || 'Registration failed');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', err);
+      setError('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,46 +80,88 @@ const Register = () => {
         <div className="login-header">
           <img src="/myapplogo.jpeg" alt="Astra Preschool" className="login-logo" />
           <h1>Register</h1>
-          <p>Sign up with OTP verification</p>
+          <p>Create your account</p>
         </div>
 
-        <form onSubmit={handleRegister} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form">
           {message && <div className="success-message">{message}</div>}
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-group">
-            <label>Name</label>
-            <input type="text" name="name" value={form.name} onChange={handleChange} required />
+            <label>Full Name *</label>
+            <input 
+              type="text" 
+              name="name" 
+              value={formData.name} 
+              onChange={handleChange} 
+              required 
+              disabled={loading}
+              placeholder="Enter your full name"
+            />
           </div>
 
           <div className="form-group">
-            <label>Username</label>
-            <input type="text" name="username" value={form.username} onChange={handleChange} required />
+            <label>Username *</label>
+            <input 
+              type="text" 
+              name="username" 
+              value={formData.username} 
+              onChange={handleChange} 
+              required 
+              disabled={loading}
+              placeholder="Choose a username"
+            />
           </div>
 
           <div className="form-group">
-            <label>Phone Number</label>
-            <input type="tel" name="phone" value={form.phone} onChange={handleChange} required />
-            <button type="button" onClick={sendOtp} className="login-button" style={{ marginTop: '10px' }}>
-              {otpSent ? 'Resend OTP' : 'Send OTP'}
-            </button>
+            <label>Email (Optional)</label>
+            <input 
+              type="email" 
+              name="email" 
+              value={formData.email} 
+              onChange={handleChange} 
+              disabled={loading}
+              placeholder="Enter your email address"
+            />
           </div>
 
-          {otpSent && (
-            <>
-              <div className="form-group">
-                <label>OTP</label>
-                <input type="text" name="otp" value={form.otp} onChange={handleChange} required />
-              </div>
+          <div className="form-group">
+            <label>Password *</label>
+            <input 
+              type="password" 
+              name="password" 
+              value={formData.password} 
+              onChange={handleChange} 
+              required 
+              disabled={loading}
+              placeholder="Enter your password (min 6 characters)"
+            />
+          </div>
 
-              <div className="form-group">
-                <label>Password</label>
-                <input type="password" name="password" value={form.password} onChange={handleChange} required />
-              </div>
+          <div className="form-group">
+            <label>Confirm Password *</label>
+            <input 
+              type="password" 
+              name="confirmPassword" 
+              value={formData.confirmPassword} 
+              onChange={handleChange} 
+              required 
+              disabled={loading}
+              placeholder="Confirm your password"
+            />
+          </div>
 
-              <button type="submit" className="login-button">Register</button>
-            </>
-          )}
+          <button 
+            type="submit" 
+            className="login-button" 
+            disabled={loading}
+          >
+            {loading ? 'Creating Account...' : 'Register'}
+          </button>
+
+          <p className="register-link">
+            Already have an account? <Link to="/login">Login</Link>
+          </p>
         </form>
       </div>
     </div>
