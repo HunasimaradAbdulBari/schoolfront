@@ -23,6 +23,19 @@ const Receipt = ({ student, onClose }) => {
           </div>
           
           <div className="receipt-details">
+            {/* 🆕 NEW: Show Student ID in receipt */}
+            {student.studentId && (
+              <div className="receipt-row">
+                <span>Student ID:</span>
+                <span style={{
+                  fontFamily: 'monospace',
+                  fontWeight: 'bold',
+                  color: '#007bff'
+                }}>
+                  {student.studentId}
+                </span>
+              </div>
+            )}
             <div className="receipt-row">
               <span>Student Name:</span>
               <span>{student.name}</span>

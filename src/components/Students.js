@@ -117,16 +117,17 @@ const Students = () => {
     setEditForm(prev => ({ ...prev, [name]: value }));
   }, []);
 
-  // Optimized filtered students using useMemo - Fixed the logic error
+  // Optimized filtered students using useMemo - Updated to include Student ID search
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (student.studentId && student.studentId.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesClass = selectedClass === '' || student.class === selectedClass;
       return matchesSearch && matchesClass;
     });
   }, [students, searchTerm, selectedClass]);
 
-  // ✅ NEW: CSV Export Function - FIXED VERSION
+  // ✅ CSV Export Function - UPDATED to include Student ID
   const exportToCSV = useCallback(() => {
     if (filteredStudents.length === 0) {
       alert('No students data to export!');
@@ -134,8 +135,9 @@ const Students = () => {
     }
 
     try {
-      // Define CSV headers
+      // Define CSV headers - Added Student ID
       const headers = [
+        'Student ID',
         'Student Name',
         'Class',
         'Parent Name',
@@ -153,6 +155,7 @@ const Students = () => {
       // Convert students data to CSV format
       const csvData = filteredStudents.map(student => {
         return [
+          student.studentId || 'N/A', // 🆕 NEW: Added Student ID
           student.name || 'N/A',
           student.class || 'N/A',
           student.parentName || 'N/A',
@@ -213,7 +216,7 @@ const Students = () => {
     setIsEditMode(false);
   }, []);
 
-  // Optimized print functionality
+  // Optimized print functionality - UPDATED to include Student ID
   const handlePrint = useCallback(() => {
     const content = document.getElementById('print-area');
     const printWindow = window.open('', '', 'height=600,width=800');
@@ -240,7 +243,7 @@ const Students = () => {
     printWindow.print();
   }, []);
 
-  // Optimized receipt download
+  // Optimized receipt download - UPDATED to include Student ID
   const downloadReceipt = useCallback((student) => {
     const receiptHTML = `
       <!DOCTYPE html>
@@ -302,6 +305,7 @@ const Students = () => {
           <h2 style="margin-top: 20px;">PAYMENT RECEIPT</h2>
         </div>
         <div class="receipt-details">
+          <div class="receipt-row"><strong>Student ID:</strong><span>${student.studentId || 'N/A'}</span></div>
           <div class="receipt-row"><strong>Student Name:</strong><span>${student.name}</span></div>
           <div class="receipt-row"><strong>Class:</strong><span>${student.class}</span></div>
           <div class="receipt-row"><strong>Parent Name:</strong><span>${student.parentName || 'N/A'}</span></div>
@@ -349,6 +353,7 @@ const Students = () => {
             <hr />
           </div>
           <div class="details">
+            <div class="detail-row"><strong>Student ID:</strong> ${student.studentId || 'N/A'}</div>
             <div class="detail-row"><strong>Name:</strong> ${student.name}</div>
             <div class="detail-row"><strong>Class:</strong> ${student.class}</div>
             <div class="detail-row"><strong>Parent:</strong> ${student.parentName || 'N/A'}</div>
@@ -435,7 +440,7 @@ const Students = () => {
         <div className="search-container">
           <input
             type="text"
-            placeholder="Search students..."
+            placeholder="Search students by name or ID..."
             value={searchTerm}
             onChange={handleSearch}
             className="search-input"
@@ -465,7 +470,7 @@ const Students = () => {
       {/* Error Message */}
       {error && <div className="error-message">{error}</div>}
 
-      {/* Print Area - Hidden content for printing */}
+      {/* Print Area - Hidden content for printing - UPDATED with Student ID */}
       <div id="print-area" style={{ display: 'none' }}>
         <div className="print-header">
           <h1>ASTRA PRESCHOOL - STUDENT RECORDS</h1>
@@ -476,7 +481,7 @@ const Students = () => {
         </div>
         {filteredStudents.map(student => (
           <div key={student._id} className="student-item">
-            <div className="student-name">{student.name} - {student.class}</div>
+            <div className="student-name">{student.studentId ? `${student.studentId} - ` : ''}{student.name} - {student.class}</div>
             <div className="student-details">
               <p><strong>Parent:</strong> {student.parentName || 'N/A'} | <strong>Phone:</strong> {student.parentPhone || 'N/A'}</p>
               <p><strong>Fee Paid:</strong> ₹{student.feePaid} | <strong>Balance:</strong> ₹{student.balance}</p>
@@ -488,7 +493,7 @@ const Students = () => {
         ))}
       </div>
 
-      {/* Students Grid */}
+      {/* Students Grid - UPDATED to show Student ID */}
       <div className={`students-grid ${viewMode === 'list' ? 'list-view' : 'grid-view'}`}>
         {filteredStudents.length === 0 ? (
           <div className="no-students"><p>No students found</p></div>
@@ -513,6 +518,18 @@ const Students = () => {
                 <StudentAvatar student={student} />
               </div>
               <div className="student-info">
+                {/* 🆕 NEW: Show Student ID prominently */}
+                {student.studentId && (
+                  <p className="student-id" style={{
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    color: '#007bff',
+                    margin: '0 0 5px 0',
+                    fontFamily: 'monospace'
+                  }}>
+                    ID: {student.studentId}
+                  </p>
+                )}
                 <h3>{student.name}</h3>
                 <p className="student-class">{student.class}</p>
                 <p><strong>Parent:</strong> {student.parentName || 'N/A'}</p>
@@ -538,7 +555,7 @@ const Students = () => {
         )}
       </div>
 
-      {/* Modal for Student Details */}
+      {/* Modal for Student Details - UPDATED to show Student ID */}
       {selectedStudent && (
         <div className="modal-overlay" onClick={closeStudentDetails}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -549,15 +566,51 @@ const Students = () => {
             <div className="modal-body">
               {isEditMode ? (
                 <div className="student-details-form">
-                  {["name","class","parentName","parentPhone","address","dateOfBirth","bloodGroup","feePaid","balance","date","allergies"].map(field => (
+                  {["studentId","name","class","parentName","parentPhone","address","dateOfBirth","bloodGroup","feePaid","balance","date","allergies"].map(field => (
                     <div className="detail-row" key={field}>
-                      <label>{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}:</label>
-                      <input
-                        name={field}
-                        type={field.includes("date") ? "date" : "text"}
-                        value={editForm[field] || ''}
-                        onChange={handleEditChange}
-                      />
+                      <label>{field === 'studentId' ? 'Student ID' : field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}:</label>
+                      {field === 'class' ? (
+                        <select
+                          name={field}
+                          value={editForm[field] || ''}
+                          onChange={handleEditChange}
+                        >
+                          <option value="Play Group">Play Group</option>
+                          <option value="Nursery">Nursery</option>
+                          <option value="LKG">LKG</option>
+                          <option value="UKG">UKG</option>
+                        </select>
+                      ) : field === 'bloodGroup' ? (
+                        <select
+                          name={field}
+                          value={editForm[field] || ''}
+                          onChange={handleEditChange}
+                        >
+                          <option value="">Select Blood Group</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                        </select>
+                      ) : (
+                        <input
+                          name={field}
+                          type={field.includes("date") ? "date" : field.includes("fee") || field.includes("balance") ? "number" : "text"}
+                          value={editForm[field] || ''}
+                          onChange={handleEditChange}
+                          style={field === 'studentId' ? {
+                            textTransform: 'uppercase',
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold'
+                          } : {}}
+                          maxLength={field === 'studentId' ? 6 : undefined}
+                          placeholder={field === 'studentId' ? 'AS1234' : ''}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -567,12 +620,12 @@ const Students = () => {
                     <StudentAvatar student={selectedStudent} className="modal-avatar" />
                   </div>
                   <div className="student-details">
-                    {["Name","Class","Date of Birth","Blood Group","Address","Parent Name","Parent Phone","Fee Paid","Balance","Payment Date","Allergies/Medical Notes"].map((label, idx) => {
+                    {["Student ID","Name","Class","Date of Birth","Blood Group","Address","Parent Name","Parent Phone","Fee Paid","Balance","Payment Date","Allergies/Medical Notes"].map((label, idx) => {
                       const keyMap = {
-                        0: "name", 1: "class", 2: "dateOfBirth",
-                        3: "bloodGroup", 4: "address", 5: "parentName",
-                        6: "parentPhone", 7: "feePaid", 8: "balance",
-                        9: "date", 10: "allergies"
+                        0: "studentId", 1: "name", 2: "class", 3: "dateOfBirth",
+                        4: "bloodGroup", 5: "address", 6: "parentName",
+                        7: "parentPhone", 8: "feePaid", 9: "balance",
+                        10: "date", 11: "allergies"
                       };
                       const val = selectedStudent[keyMap[idx]];
                       const display = (keyMap[idx] === "date" || keyMap[idx] === "dateOfBirth")
@@ -580,7 +633,14 @@ const Students = () => {
                         : val || 'N/A';
                       return (
                         <div className="detail-row" key={label}>
-                          <label>{label}:</label><span>{display}</span>
+                          <label>{label}:</label>
+                          <span style={keyMap[idx] === 'studentId' ? {
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold',
+                            color: '#007bff'
+                          } : {}}>
+                            {display}
+                          </span>
                         </div>
                       );
                     })}
