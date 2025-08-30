@@ -6,6 +6,7 @@ import '../styles/Dashboard.css';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    studentId: 'AS', // Default Student ID prefix
     name: '',
     class: 'Play Group',
     feePaid: '',
@@ -42,6 +43,26 @@ const Dashboard = () => {
     }
     
     return age;
+  };
+
+  // 🆕 NEW: Handle Student ID input to ensure "AS" prefix
+  const handleStudentIdChange = (e) => {
+    let value = e.target.value;
+    
+    // Ensure it always starts with "AS"
+    if (!value.startsWith('AS')) {
+      value = 'AS';
+    }
+    
+    // Limit to 6 characters total (AS + 4 digits)
+    if (value.length > 6) {
+      value = value.substring(0, 6);
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      studentId: value
+    }));
   };
 
   const handleInputChange = (e) => {
@@ -89,6 +110,13 @@ const Dashboard = () => {
     setError('');
     setSuccess('');
 
+    // 🆕 NEW: Validate Student ID format
+    if (!formData.studentId || formData.studentId.length !== 6 || !formData.studentId.startsWith('AS')) {
+      setError('Student ID must be in format AS followed by 4 characters (e.g., AS1234)');
+      setLoading(false);
+      return;
+    }
+
     try {
       const submitData = new FormData();
       
@@ -110,6 +138,7 @@ const Dashboard = () => {
       setSuccess('Student added successfully!');
       
       setFormData({
+        studentId: 'AS', // Reset to default prefix
         name: '',
         class: 'Play Group',
         feePaid: '',
@@ -138,6 +167,7 @@ const Dashboard = () => {
 
   const handleClear = () => {
     setFormData({
+      studentId: 'AS', // Reset to default prefix
       name: '',
       class: 'Play Group',
       feePaid: '',
@@ -206,7 +236,7 @@ const Dashboard = () => {
           )}
 
           {/* Student Photo */}
-          {/* <div className="form-section">
+          <div className="form-section">
             <h3>Student Photo</h3>
             <div className="photo-upload">
               <input
@@ -224,11 +254,37 @@ const Dashboard = () => {
                 <span className="file-name">{formData.studentPhoto.name}</span>
               )}
             </div>
-          </div> */}
+          </div>
 
           {/* Student Information */}
           <div className="form-section">
             <h3>Student Information</h3>
+            {/* 🆕 NEW: Student ID Field - First field in the form */}
+            <div className="form-row">
+              <div className="form-group">
+                <label>Student ID *</label>
+                <input
+                  type="text"
+                  name="studentId"
+                  value={formData.studentId}
+                  onChange={handleStudentIdChange}
+                  required
+                  disabled={loading}
+                  placeholder="AS1234"
+                  maxLength="6"
+                  style={{
+                    textTransform: 'uppercase',
+                    fontFamily: 'monospace',
+                    fontSize: '16px',
+                    fontWeight: 'bold'
+                  }}
+                />
+                <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+                  Format: AS followed by 4 characters (e.g., AS1234, ASAB01)
+                </small>
+              </div>
+            </div>
+            
             <div className="form-row">
               <div className="form-group">
                 <label>Full Name *</label>

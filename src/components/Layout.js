@@ -94,7 +94,7 @@ const Layout = () => {
             <p>
               <a href="mailto:info@astrapreschool.com">
                 <i className="fa fa-envelope" style={{ fontSize: '20px', marginRight: '6px' }}></i>
-                info@astrapreschool.com
+                astrapreschool.tumkuru@gmail.com
               </a>
             </p>
           </div>
