@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { api } from '../services/api';
-import { useNavigate, useLocation } from 'react-router-dom'; // Updated import
+import { useNavigate, useLocation } from 'react-router-dom';
+import { API_BASE_URL } from '../config'; // Added this import
 import '../styles/Students.css';
 
 const Students = () => {
@@ -14,7 +15,7 @@ const Students = () => {
   const [editForm, setEditForm] = useState({});
   const [viewMode, setViewMode] = useState('grid');
   const navigate = useNavigate();
-  const location = useLocation(); // Added this line
+  const location = useLocation();
 
   // Default Avatar SVG Component
   const DefaultAvatar = () => (
@@ -23,12 +24,36 @@ const Students = () => {
     </svg>
   );
 
+  // Student Avatar Component with Image Support
+  const StudentAvatar = ({ student, className = "" }) => {
+    const [imageError, setImageError] = useState(false);
+    
+    // Check if student has a photo and no image error occurred
+    const hasValidPhoto = student?.studentPhoto && !imageError;
+    
+    if (hasValidPhoto) {
+      return (
+        <img
+          src={`${API_BASE_URL}${student.studentPhoto}`}
+          alt={`${student.name}'s photo`}
+          className={`student-photo ${className}`}
+          onError={() => setImageError(true)}
+          onLoad={() => setImageError(false)}
+          style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '50%' }}
+        />
+      );
+    }
+    
+    // Fallback to default avatar
+    return <DefaultAvatar />;
+  };
+
   // Effects
   useEffect(() => {
     fetchStudents();
   }, []);
 
-  // 🔧 NEW: Add this useEffect to handle navigation from Dashboard
+  // Handle navigation from Dashboard
   useEffect(() => {
     // Check if we're coming from Dashboard with a student to show
     if (location.state?.openStudentModal && location.state?.selectedStudent) {
@@ -87,20 +112,97 @@ const Students = () => {
   // Optimized event handlers using useCallback
   const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
   const handleClassFilter = useCallback((e) => setSelectedClass(e.target.value), []);
-
   const handleEditChange = useCallback((e) => {
     const { name, value } = e.target;
     setEditForm(prev => ({ ...prev, [name]: value }));
   }, []);
 
-  // Optimized filtered students using useMemo
+  // Optimized filtered students using useMemo - Updated to include Student ID search
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (student.studentId && student.studentId.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesClass = selectedClass === '' || student.class === selectedClass;
       return matchesSearch && matchesClass;
     });
   }, [students, searchTerm, selectedClass]);
+
+  // ✅ CSV Export Function - UPDATED to include Student ID
+  const exportToCSV = useCallback(() => {
+    if (filteredStudents.length === 0) {
+      alert('No students data to export!');
+      return;
+    }
+
+    try {
+      // Define CSV headers - Added Student ID
+      const headers = [
+        'Student ID',
+        'Student Name',
+        'Class',
+        'Parent Name',
+        'Parent Phone',
+        'Date of Birth',
+        'Blood Group',
+        'Address',
+        'Fee Paid',
+        'Balance',
+        'Payment Date',
+        'Allergies/Medical Notes',
+        'Registration Date'
+      ];
+
+      // Convert students data to CSV format
+      const csvData = filteredStudents.map(student => {
+        return [
+          student.studentId || 'N/A', // 🆕 NEW: Added Student ID
+          student.name || 'N/A',
+          student.class || 'N/A',
+          student.parentName || 'N/A',
+          student.parentPhone || 'N/A',
+          student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('en-IN') : 'N/A',
+          student.bloodGroup || 'N/A',
+          student.address ? student.address.replace(/"/g, '""') : 'N/A', // Escape quotes
+          student.feePaid || '0',
+          student.balance || '0',
+          student.date ? new Date(student.date).toLocaleDateString('en-IN') : 'N/A',
+          student.allergies ? student.allergies.replace(/"/g, '""') : 'N/A', // Escape quotes
+          student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-IN') : 'N/A'
+        ];
+      });
+
+      // Combine headers and data
+      const csvContent = [headers, ...csvData]
+        .map(row => row.map(cell => `"${cell}"`).join(','))
+        .join('\n');
+
+      // Add BOM for proper Excel encoding
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+      // Create download link
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split('T')[0];
+      const filename = `Astra_Preschool_Students_${currentDate}.csv`;
+      link.setAttribute('download', filename);
+      
+      // Trigger download
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log(`✅ CSV exported: ${filename} with ${filteredStudents.length} students`);
+    } catch (error) {
+      console.error('❌ CSV export error:', error);
+      alert('Failed to export CSV. Please try again.');
+    }
+  }, [filteredStudents]);
 
   // Modal functions
   const openStudentDetails = useCallback((student) => {
@@ -114,7 +216,7 @@ const Students = () => {
     setIsEditMode(false);
   }, []);
 
-  // Optimized print functionality
+  // Optimized print functionality - UPDATED to include Student ID
   const handlePrint = useCallback(() => {
     const content = document.getElementById('print-area');
     const printWindow = window.open('', '', 'height=600,width=800');
@@ -141,7 +243,7 @@ const Students = () => {
     printWindow.print();
   }, []);
 
-  // Optimized receipt download
+  // Optimized receipt download - UPDATED to include Student ID
   const downloadReceipt = useCallback((student) => {
     const receiptHTML = `
       <!DOCTYPE html>
@@ -196,23 +298,24 @@ const Students = () => {
         </style>
       </head>
       <body>
-        <div className="receipt-header">
+        <div class="receipt-header">
           <h1>ASTRA PRESCHOOL</h1>
           <p>5th Cross, Ganesh Temple Road, Sadashiv Nagar, Tumkur - 572101</p>
           <p>Phone: 9008887230</p>
           <h2 style="margin-top: 20px;">PAYMENT RECEIPT</h2>
         </div>
-        <div className="receipt-details">
-          <div className="receipt-row"><strong>Student Name:</strong><span>${student.name}</span></div>
-          <div className="receipt-row"><strong>Class:</strong><span>${student.class}</span></div>
-          <div className="receipt-row"><strong>Parent Name:</strong><span>${student.parentName || 'N/A'}</span></div>
-          <div className="receipt-row"><strong>Parent Phone:</strong><span>${student.parentPhone || 'N/A'}</span></div>
-          <div className="receipt-row"><strong>Fee Paid:</strong><span>₹${student.feePaid}</span></div>
-          <div className="receipt-row"><strong>Balance:</strong><span>₹${student.balance}</span></div>
-          <div className="receipt-row total-row"><strong>Total Amount:</strong><span>₹${parseInt(student.feePaid) + parseInt(student.balance)}</span></div>
-          <div className="receipt-row"><strong>Payment Date:</strong><span>${new Date(student.date).toLocaleDateString('en-IN')}</span></div>
+        <div class="receipt-details">
+          <div class="receipt-row"><strong>Student ID:</strong><span>${student.studentId || 'N/A'}</span></div>
+          <div class="receipt-row"><strong>Student Name:</strong><span>${student.name}</span></div>
+          <div class="receipt-row"><strong>Class:</strong><span>${student.class}</span></div>
+          <div class="receipt-row"><strong>Parent Name:</strong><span>${student.parentName || 'N/A'}</span></div>
+          <div class="receipt-row"><strong>Parent Phone:</strong><span>${student.parentPhone || 'N/A'}</span></div>
+          <div class="receipt-row"><strong>Fee Paid:</strong><span>₹${student.feePaid}</span></div>
+          <div class="receipt-row"><strong>Balance:</strong><span>₹${student.balance}</span></div>
+          <div class="receipt-row total-row"><strong>Total Amount:</strong><span>₹${parseInt(student.feePaid) + parseInt(student.balance)}</span></div>
+          <div class="receipt-row"><strong>Payment Date:</strong><span>${new Date(student.date).toLocaleDateString('en-IN')}</span></div>
         </div>
-        <div className="receipt-footer">
+        <div class="receipt-footer">
           <p>Thank you for your payment!</p>
           <p>Generated on ${new Date().toLocaleDateString('en-IN')} at ${new Date().toLocaleTimeString('en-IN')}</p>
           <p style="margin-top: 20px; font-style: italic;">This is a computer generated receipt.</p>
@@ -220,7 +323,6 @@ const Students = () => {
       </body>
       </html>
     `;
-
     const blob = new Blob([receiptHTML], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -245,23 +347,24 @@ const Students = () => {
           </style>
         </head>
         <body>
-          <div className="header">
+          <div class="header">
             <h2>ASTRA PRESCHOOL</h2>
             <p>Student Detail Printout</p>
             <hr />
           </div>
-          <div className="details">
-            <div className="detail-row"><strong>Name:</strong> ${student.name}</div>
-            <div className="detail-row"><strong>Class:</strong> ${student.class}</div>
-            <div className="detail-row"><strong>Parent:</strong> ${student.parentName || 'N/A'}</div>
-            <div className="detail-row"><strong>Phone:</strong> ${student.parentPhone || 'N/A'}</div>
-            <div className="detail-row"><strong>Date of Birth:</strong> ${student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : 'N/A'}</div>
-            <div className="detail-row"><strong>Blood Group:</strong> ${student.bloodGroup || 'N/A'}</div>
-            <div className="detail-row"><strong>Address:</strong> ${student.address || 'N/A'}</div>
-            <div className="detail-row"><strong>Fee Paid:</strong> ₹${student.feePaid}</div>
-            <div className="detail-row"><strong>Balance:</strong> ₹${student.balance}</div>
-            <div className="detail-row"><strong>Payment Date:</strong> ${student.date ? new Date(student.date).toLocaleDateString() : 'N/A'}</div>
-            <div className="detail-row"><strong>Allergies:</strong> ${student.allergies || 'N/A'}</div>
+          <div class="details">
+            <div class="detail-row"><strong>Student ID:</strong> ${student.studentId || 'N/A'}</div>
+            <div class="detail-row"><strong>Name:</strong> ${student.name}</div>
+            <div class="detail-row"><strong>Class:</strong> ${student.class}</div>
+            <div class="detail-row"><strong>Parent:</strong> ${student.parentName || 'N/A'}</div>
+            <div class="detail-row"><strong>Phone:</strong> ${student.parentPhone || 'N/A'}</div>
+            <div class="detail-row"><strong>Date of Birth:</strong> ${student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : 'N/A'}</div>
+            <div class="detail-row"><strong>Blood Group:</strong> ${student.bloodGroup || 'N/A'}</div>
+            <div class="detail-row"><strong>Address:</strong> ${student.address || 'N/A'}</div>
+            <div class="detail-row"><strong>Fee Paid:</strong> ₹${student.feePaid}</div>
+            <div class="detail-row"><strong>Balance:</strong> ₹${student.balance}</div>
+            <div class="detail-row"><strong>Payment Date:</strong> ${student.date ? new Date(student.date).toLocaleDateString() : 'N/A'}</div>
+            <div class="detail-row"><strong>Allergies:</strong> ${student.allergies || 'N/A'}</div>
           </div>
           <p style="margin-top: 30px; font-style: italic; text-align: center;">Printed on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
         </body>
@@ -289,12 +392,20 @@ const Students = () => {
         <h1>Student Records</h1>
         <div className="header-actions">
           {students.length > 0 && (
-            <button onClick={handlePrint} className="print-btn">
-              <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fillRule="evenodd" d="M8 3a2 2 0 0 0-2 2v3h12V5a2 2 0 0 0-2-2H8Zm-3 7a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1v-4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v4h1a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5Zm4 11a1 1 0 0 1-1-1v-4h8v4a1 1 0 0 1-1 1H9Z" clipRule="evenodd"/>
-              </svg>
-              Print
-            </button>
+            <>
+              <button onClick={exportToCSV} className="add-student-btn" title="Export all student data to CSV/Excel">
+                <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2 2 2 0 0 0 2 2h12a2 2 0 0 0 2-2 2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2V4a2 2 0 0 0-2-2h-5ZM4.5 11.5A1.5 1.5 0 0 1 6 10h12a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 18 18H6a1.5 1.5 0 0 1-1.5-1.5v-5ZM6 12.25a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 6 12.25Zm2.25-.75a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5ZM6 14.25a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 6 14.25Zm2.25-.75a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Z" clipRule="evenodd"/>
+                </svg>
+                Export CSV
+              </button>
+              <button onClick={handlePrint} className="print-btn">
+                <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 3a2 2 0 0 0-2 2v3h12V5a2 2 0 0 0-2-2H8Zm-3 7a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1v-4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v4h1a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5Zm4 11a1 1 0 0 1-1-1v-4h8v4a1 1 0 0 1-1 1H9Z" clipRule="evenodd"/>
+                </svg>
+                Print
+              </button>
+            </>
           )}
           <button onClick={() => navigate('/dashboard')} className="add-student-btn">
             Add New Student
@@ -329,7 +440,7 @@ const Students = () => {
         <div className="search-container">
           <input
             type="text"
-            placeholder="Search students..."
+            placeholder="Search students by name or ID..."
             value={searchTerm}
             onChange={handleSearch}
             className="search-input"
@@ -359,7 +470,7 @@ const Students = () => {
       {/* Error Message */}
       {error && <div className="error-message">{error}</div>}
 
-      {/* Print Area - Hidden content for printing */}
+      {/* Print Area - Hidden content for printing - UPDATED with Student ID */}
       <div id="print-area" style={{ display: 'none' }}>
         <div className="print-header">
           <h1>ASTRA PRESCHOOL - STUDENT RECORDS</h1>
@@ -370,7 +481,7 @@ const Students = () => {
         </div>
         {filteredStudents.map(student => (
           <div key={student._id} className="student-item">
-            <div className="student-name">{student.name} - {student.class}</div>
+            <div className="student-name">{student.studentId ? `${student.studentId} - ` : ''}{student.name} - {student.class}</div>
             <div className="student-details">
               <p><strong>Parent:</strong> {student.parentName || 'N/A'} | <strong>Phone:</strong> {student.parentPhone || 'N/A'}</p>
               <p><strong>Fee Paid:</strong> ₹{student.feePaid} | <strong>Balance:</strong> ₹{student.balance}</p>
@@ -382,7 +493,7 @@ const Students = () => {
         ))}
       </div>
 
-      {/* Students Grid */}
+      {/* Students Grid - UPDATED to show Student ID */}
       <div className={`students-grid ${viewMode === 'list' ? 'list-view' : 'grid-view'}`}>
         {filteredStudents.length === 0 ? (
           <div className="no-students"><p>No students found</p></div>
@@ -404,9 +515,21 @@ const Students = () => {
               </button>
               
               <div className="student-avatar">
-                <DefaultAvatar />
+                <StudentAvatar student={student} />
               </div>
               <div className="student-info">
+                {/* 🆕 NEW: Show Student ID prominently */}
+                {student.studentId && (
+                  <p className="student-id" style={{
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    color: '#007bff',
+                    margin: '0 0 5px 0',
+                    fontFamily: 'monospace'
+                  }}>
+                    ID: {student.studentId}
+                  </p>
+                )}
                 <h3>{student.name}</h3>
                 <p className="student-class">{student.class}</p>
                 <p><strong>Parent:</strong> {student.parentName || 'N/A'}</p>
@@ -432,7 +555,7 @@ const Students = () => {
         )}
       </div>
 
-      {/* Modal for Student Details */}
+      {/* Modal for Student Details - UPDATED to show Student ID */}
       {selectedStudent && (
         <div className="modal-overlay" onClick={closeStudentDetails}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -443,38 +566,81 @@ const Students = () => {
             <div className="modal-body">
               {isEditMode ? (
                 <div className="student-details-form">
-                  {["name","class","parentName","parentPhone","address","dateOfBirth","bloodGroup","feePaid","balance","date","allergies"].map(field => (
+                  {["studentId","name","class","parentName","parentPhone","address","dateOfBirth","bloodGroup","feePaid","balance","date","allergies"].map(field => (
                     <div className="detail-row" key={field}>
-                      <label>{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}:</label>
-                      <input
-                        name={field}
-                        type={field.includes("date") ? "date" : "text"}
-                        value={editForm[field] || ''}
-                        onChange={handleEditChange}
-                      />
+                      <label>{field === 'studentId' ? 'Student ID' : field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}:</label>
+                      {field === 'class' ? (
+                        <select
+                          name={field}
+                          value={editForm[field] || ''}
+                          onChange={handleEditChange}
+                        >
+                          <option value="Play Group">Play Group</option>
+                          <option value="Nursery">Nursery</option>
+                          <option value="LKG">LKG</option>
+                          <option value="UKG">UKG</option>
+                        </select>
+                      ) : field === 'bloodGroup' ? (
+                        <select
+                          name={field}
+                          value={editForm[field] || ''}
+                          onChange={handleEditChange}
+                        >
+                          <option value="">Select Blood Group</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                        </select>
+                      ) : (
+                        <input
+                          name={field}
+                          type={field.includes("date") ? "date" : field.includes("fee") || field.includes("balance") ? "number" : "text"}
+                          value={editForm[field] || ''}
+                          onChange={handleEditChange}
+                          style={field === 'studentId' ? {
+                            textTransform: 'uppercase',
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold'
+                          } : {}}
+                          maxLength={field === 'studentId' ? 6 : undefined}
+                          placeholder={field === 'studentId' ? 'AS1234' : ''}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
               ) : (
                 <>
                   <div className="student-detail-avatar">
-                    <DefaultAvatar />
+                    <StudentAvatar student={selectedStudent} className="modal-avatar" />
                   </div>
                   <div className="student-details">
-                    {["Name","Class","Date of Birth","Blood Group","Address","Parent Name","Parent Phone","Fee Paid","Balance","Payment Date","Allergies/Medical Notes"].map((label, idx) => {
+                    {["Student ID","Name","Class","Date of Birth","Blood Group","Address","Parent Name","Parent Phone","Fee Paid","Balance","Payment Date","Allergies/Medical Notes"].map((label, idx) => {
                       const keyMap = {
-                        0: "name", 1: "class", 2: "dateOfBirth",
-                        3: "bloodGroup", 4: "address", 5: "parentName",
-                        6: "parentPhone", 7: "feePaid", 8: "balance",
-                        9: "date", 10: "allergies"
+                        0: "studentId", 1: "name", 2: "class", 3: "dateOfBirth",
+                        4: "bloodGroup", 5: "address", 6: "parentName",
+                        7: "parentPhone", 8: "feePaid", 9: "balance",
+                        10: "date", 11: "allergies"
                       };
                       const val = selectedStudent[keyMap[idx]];
-                      const display = keyMap[idx]==="date" || keyMap[idx]==="dateOfBirth"
+                      const display = (keyMap[idx] === "date" || keyMap[idx] === "dateOfBirth")
                         ? val ? new Date(val).toLocaleDateString() : 'N/A'
                         : val || 'N/A';
                       return (
                         <div className="detail-row" key={label}>
-                          <label>{label}:</label><span>{display}</span>
+                          <label>{label}:</label>
+                          <span style={keyMap[idx] === 'studentId' ? {
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold',
+                            color: '#007bff'
+                          } : {}}>
+                            {display}
+                          </span>
                         </div>
                       );
                     })}
