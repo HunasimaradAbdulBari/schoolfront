@@ -1,0 +1,338 @@
+.parent-register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.register-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 500px;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.register-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  object-fit: cover;
+}
+
+.register-header h1 {
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.register-header p {
+  color: #666;
+  font-size: 16px;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  background: #ddd;
+}
+
+.step.active {
+  background: #667eea;
+}
+
+.step.completed {
+  background: #28a745;
+}
+
+.step-line {
+  width: 50px;
+  height: 2px;
+  background: #ddd;
+  margin: 0 10px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 15px;
+  border: 2px solid #e1e1e1;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group small {
+  font-size: 13px;
+  color: #666;
+}
+
+.register-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.register-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.register-info {
+  background: #f8f9ff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.register-info h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.register-info ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+.register-info li {
+  margin-bottom: 8px;
+}
+
+.otp-info {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.otp-info h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.otp-info p {
+  margin: 8px 0;
+  color: #666;
+}
+
+.otp-input {
+  text-align: center;
+  font-size: 18px;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+.otp-timer {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.otp-timer p {
+  color: #666;
+  margin: 0;
+}
+
+.otp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.resend-button {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.back-button {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.otp-help {
+  background: #fff3cd;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+  border-left: 4px solid #ffc107;
+}
+
+.otp-help h4 {
+  margin: 0 0 15px 0;
+  color: #856404;
+}
+
+.otp-help ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #856404;
+}
+
+.otp-help li {
+  margin-bottom: 8px;
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.register-footer p {
+  margin: 10px 0;
+  color: #666;
+}
+
+.register-footer a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-footer a:hover {
+  text-decoration: underline;
+}
+
+.help-text {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Login enhancements */
+.login-mode-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 25px;
+  background: #f8f9ff;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: #666;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.mode-btn.active {
+  background: #667eea;
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.login-instructions {
+  background: #f8f9ff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 25px;
+  border-left: 4px solid #667eea;
+}
+
+.login-instructions h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.login-instructions ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+.login-instructions li {
+  margin-bottom: 8px;
+}
+
+.parent-options {
+  text-align: center;
+}
+
+.demo-credentials {
+  background: #fff3cd;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+  border-left: 4px solid #ffc107;
+}
+
+.demo-credentials h4 {
+  margin: 0 0 15px 0;
+  color: #856404;
+}
+
+.demo-credentials p {
+  margin: 8px 0;
+  color: #856404;
+  font-family: monospace;
+}
