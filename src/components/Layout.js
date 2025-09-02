@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { HashRouter as Router } from 'react-router-dom';
-
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Layout.css';
@@ -8,7 +6,7 @@ import '../styles/Layout.css';
 const Layout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin, isParent } = useAuth();
   const navigate = useNavigate();
 
   if (!user) {
@@ -32,21 +30,52 @@ const Layout = () => {
         <div className="nav-container">
           <div className="nav-logo">
             <img src="/myapplogo.jpeg" alt="Astra" className="logo-img" />
-            <span className="logo-text">ASTRA PRESCHOOL</span>
+            <div className="logo-text-container">
+              <span className="logo-text">ASTRA PRESCHOOL</span>
+              <span className="user-role-badge">
+                {isAdmin() ? 'Administrator' : 'Parent Portal'}
+              </span>
+            </div>
           </div>
 
           <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-            <Link to="/dashboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-              Dashboard
-            </Link>
-            <Link to="/students" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-              Students
-            </Link>
-            {/* <Link to="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-              Register
-            </Link> */}
+            {/* Role-based navigation */}
+            {isAdmin() && (
+              <>
+                <Link to="/dashboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                  Add Student
+                </Link>
+                <Link to="/students" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                  Manage Students
+                </Link>
+                <Link to="/payments" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                  Payment Management
+                </Link>
+              </>
+            )}
+            
+            {isParent() && (
+              <>
+                <Link to="/parent-dashboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                  My Children
+                </Link>
+                <Link to="/payment-history" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                  Payment History
+                </Link>
+              </>
+            )}
+
+            <div className="nav-user-info">
+              <span className="user-name">Hello, {user.name}</span>
+              {isParent() && user.studentIds && (
+                <span className="student-count">
+                  {user.studentIds.length} Child{user.studentIds.length !== 1 ? 'ren' : ''}
+                </span>
+              )}
+            </div>
+
             <div className="nav-controls">
-              <button onClick={toggleDarkMode} className="theme-btn">
+              <button onClick={toggleDarkMode} className="theme-btn" title="Toggle theme">
                 {darkMode ? (
                   <svg className="w-[19px] h-[19px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                     <path fillRule="evenodd" d="M13 3a1 1 0 1 0-2 0v2a1 1 0 1 0 2 0V3ZM6.343 4.929A1 1 0 0 0 4.93 6.343l1.414 1.414a1 1 0 0 0 1.414-1.414L6.343 4.929Zm12.728 1.414a1 1 0 0 0-1.414-1.414l-1.414 1.414a1 1 0 0 0 1.414 1.414l1.414-1.414ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm-9 4a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2H3Zm16 0a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2h-2ZM7.757 17.657a1 1 0 1 0-1.414-1.414l-1.414 1.414a1 1 0 1 0 1.414 1.414l1.414-1.414Zm9.9-1.414a1 1 0 0 0-1.414 1.414l1.414 1.414a1 1 0 0 0 1.414-1.414l-1.414-1.414ZM13 19a1 1 0 1 0-2 0v2a1 1 0 1 0 2 0v-2Z" clipRule="evenodd"/>
@@ -57,7 +86,7 @@ const Layout = () => {
                   </svg>
                 )}
               </button>
-              <button onClick={handleLogout} className="logout-btn">
+              <button onClick={handleLogout} className="logout-btn" title="Logout">
                 Logout
               </button>
             </div>
@@ -81,6 +110,12 @@ const Layout = () => {
             <h3>ASTRA PRESCHOOL</h3>
             <p>5th Cross, Ganesh Temple Road</p>
             <p>Sadashiv Nagar, Tumkur - 572101</p>
+            {isParent() && (
+              <div className="parent-footer-info">
+                <p><strong>Your Account:</strong> Parent Portal</p>
+                <p><strong>Phone:</strong> {user.phone}</p>
+              </div>
+            )}
           </div>
 
           <div className="footer-section">
@@ -97,18 +132,51 @@ const Layout = () => {
                 info@astrapreschool.com
               </a>
             </p>
+            {isParent() && (
+              <p className="parent-support">
+                <strong>Need Help?</strong><br />
+                Call us for payment support or account issues
+              </p>
+            )}
           </div>
 
           <div className="footer-section">
             <h4>Quick Links</h4>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/students">Students</Link>
-          
+            {isAdmin() && (
+              <>
+                <Link to="/dashboard">Add Student</Link>
+                <Link to="/students">Manage Students</Link>
+                <Link to="/payments">Payments</Link>
+              </>
+            )}
+            {isParent() && (
+              <>
+                <Link to="/parent-dashboard">My Children</Link>
+                <Link to="/payment-history">Payment History</Link>
+              </>
+            )}
           </div>
+
+          {isParent() && (
+            <div className="footer-section">
+              <h4>Payment Methods</h4>
+              <div className="payment-methods">
+                <p>💳 UPI Payment Available</p>
+                <p>📱 GPay, PhonePe, Paytm, BHIM</p>
+                <p>🔒 Secure & Fast</p>
+                <p>📧 SMS Confirmations</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="footer-bottom">
           <p>&copy; 2025 Astra Preschool. All rights reserved.</p>
+          {isParent() && (
+            <p className="parent-footer-note">
+              For technical support with payments, contact school administration
+            </p>
+          )}
         </div>
       </footer>
     </div>
