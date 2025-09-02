@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import '../styles/PaymentManagement.css';
+// import '../styles/PaymentManagement.css';
 
 const PaymentManagement = () => {
   const { isAdmin } = useAuth();
