@@ -231,11 +231,24 @@ const ParentRegister = () => {
                 required
                 disabled={loading}
               >
-                {carriers.map(carrier => (
-                  <option key={carrier.value} value={carrier.value}>
-                    {carrier.label}
-                  </option>
-                ))}
+                <option value="">Select your carrier</option>
+                {carriers.length > 0 ? (
+                  carriers.map(carrier => (
+                    <option key={carrier.value} value={carrier.value}>
+                      {carrier.label}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="airtel">Airtel</option>
+                    <option value="jio">Jio</option>
+                    <option value="vodafone">Vodafone</option>
+                    <option value="tmobile">T-Mobile</option>
+                    <option value="verizon">Verizon</option>
+                    <option value="att">AT&T</option>
+                    <option value="sprint">Sprint</option>
+                  </>
+                )}
               </select>
               <small>Select your mobile service provider for SMS delivery</small>
             </div>
