@@ -98,7 +98,20 @@ export const AuthProvider = ({ children }) => {
       const res = await api.get('/api/auth/carriers');
       return { success: true, carriers: res.data.carriers };
     } catch (error) {
-      return { success: false, carriers: [] };
+      console.error('Error fetching carriers:', error);
+      // Return default carriers if API fails
+      return { 
+        success: true, 
+        carriers: [
+          { value: 'airtel', label: 'Airtel' },
+          { value: 'jio', label: 'Jio' },
+          { value: 'vodafone', label: 'Vodafone' },
+          { value: 'tmobile', label: 'T-Mobile' },
+          { value: 'verizon', label: 'Verizon' },
+          { value: 'att', label: 'AT&T' },
+          { value: 'sprint', label: 'Sprint' }
+        ]
+      };
     }
   };
 
